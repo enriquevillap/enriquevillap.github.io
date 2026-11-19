@@ -147,6 +147,13 @@ function wire(){
   for(const key of ["V01","V02","V04","V06","V09","V10"]){activateScenario(key);execute(key,true);}
   changeView("history");
  };
+ $("recoverProfile").onclick=()=>{
+  for(const irradiance of [400,600,800,1000]){
+    setForm({...DEFAULTS,pump:true,reservePump:true,communication:true,irradiance});
+    execute("V10",true);
+  }
+  changeView("history");
+ };
  $("solarProfile").onclick=()=>{
   for(const irradiance of [800,750,600,400,300,400,600,750,800]){
     setForm({...DEFAULTS,irradiance});execute("V07",true);
