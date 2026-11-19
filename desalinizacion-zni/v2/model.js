@@ -77,6 +77,8 @@ export function simulate(raw={},previousTankLevel=null){
   else if(energyBad){state="ENERGY_LIMIT";action="REDUCE_LOAD";load=nominalRequired>0?Math.min(1,usefulPower/nominalRequired):1;}
   else if(tmpHigh||filterBad){state="PROCESS_LIMIT";action="REDUCE_LOAD";load=0.6;}
   else if(tankLow){state="LOW_TANK";action="WATCH";load=1;}
+  // Incluso si salinidad o proceso tiene prioridad, no consumir potencia inexistente.
+  if(load>0 && nominalRequired>0)load=Math.min(load,usefulPower/nominalRequired);
   if(energyBad)alarms.push({code:"ENERGY_LIMIT",severity:"warning",message:"Potencia FV inferior a la demanda de diseño"});
   if(salinityBad)alarms.push({code:"HIGH_SALINITY",severity:"critical",message:"Criterio virtual de salinidad excedido"});
   if(commBad)alarms.push({code:"COMMUNICATION_LOSS",severity:"critical",message:"Telemetría no disponible: modo seguro"});
