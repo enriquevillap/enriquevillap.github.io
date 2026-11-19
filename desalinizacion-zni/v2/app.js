@@ -13,7 +13,7 @@ const inputs=[
  ["irradiance","Irradiancia","W/m²",0,1400,1],["feed","Caudal alimentación","m³/h",0,3,.01],
  ["recovery","Recuperación nominal","fracción",0,.9,.01],["feedSalinity","Salinidad alimentación","g/L",0,100,.1],
  ["rejection","Rechazo de sales supuesto","fracción",.9,1,.001],["temperature","Temperatura","°C",0,50,.1],
- ["tmp","Presión TMP","bar",0,100,.5],["sec","SEC de diseño","kWh/m³",0,30,.1],
+ ["tmp","Presión TMP","bar",0,100,.5],["sec","SEC de diseño","kWh/m³",.1,30,.1],
  ["latency","Latencia sintética","ms",0,120000,100],["completeness","Completitud","%",0,100,.1],
  ["tankLevel","Nivel inicial tanque","%",0,100,1],["tankCapacity","Capacidad tanque","m³",.1,500,.5],
  ["demand","Demanda del tanque","m³/h",0,5,.01],["duration","Duración escenario","horas",0,24,.25],
@@ -161,7 +161,7 @@ function renderReport(){
  const report=aggregateHistory(state.history,period);
  $("reportSummary").textContent=report.totals.runs+" ejecuciones · "+fmt(report.totals.acceptedVolumeM3,3)+
  " m³ de permeado aceptado virtual · "+fmt(report.totals.divertedVolumeM3,3)+
- " m³ desviados virtuales · "+fmt(report.totals.energyKWh,3)+
+ " m³ desviados virtuales · "+report.totals.independentRuns+" ensayos independientes · "+report.totals.sequentialRuns+" pasos secuenciales · "+fmt(report.totals.energyKWh,3)+
  " kWh de consumo virtual · "+report.totals.alarmCount+" eventos.";
  $("reportBody").innerHTML=report.series.length?report.series.map(day=>
  '<tr><td>'+escape(day.date)+'</td><td>'+day.runs+'</td><td>'+fmt(day.acceptedM3,3)+
