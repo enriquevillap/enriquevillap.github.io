@@ -17,6 +17,13 @@ jobs:
         run: |
           set -euo pipefail
           base="https://enriquevillap.github.io/desalinizacion-zni/v3"
+          assets_ok() {
+            local file
+            for file in panorama-01.webp panorama-02.webp panorama-03.webp panorama-04.webp panorama-05.webp panorama-06.webp panorama-07.webp planta-general.webp planta-aerea.webp iot-mapa.webp iot-realista.webp; do
+              curl -fsSL --max-time 15 "$base/assets/$file" -o "/tmp/$file" || return 1
+              test "$(wc -c < "/tmp/$file")" -gt 5000 || return 1
+            done
+          }
           for i in $(seq 1 30); do
             echo "Comprobación $i de V3 en GitHub Pages"
             if curl -fsSL --max-time 15 "$base/" -o /tmp/v3.html \
@@ -28,8 +35,12 @@ jobs:
               && curl -fsSL --max-time 15 "$base/app.js" -o /tmp/app.js \
               && curl -fsSL --max-time 15 "$base/style.css" -o /tmp/style.css \
               && curl -fsSL --max-time 15 "$base/sw.js" -o /tmp/sw.js \
+              && curl -fsSL --max-time 15 "$base/experience.js" -o /tmp/experience.js \
+              && curl -fsSL --max-time 15 "$base/experience.css" -o /tmp/experience.css \
               && grep -q 'mountPlant3D' /tmp/3d.js \
-              && grep -q 'SENSOR_INFO' /tmp/components.js; then
+              && grep -q 'SENSOR_INFO' /tmp/components.js \
+              && grep -q 'PANORAMAS' /tmp/experience.js \
+              && assets_ok; then
               echo "OK: V3 publicada con todos los módulos y sin textos institucionales."
               exit 0
             fi

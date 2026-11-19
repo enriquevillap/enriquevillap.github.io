@@ -18,7 +18,7 @@
 No hay sensores, telemetría, bombas ni tanques reales conectados. El permeado modelado no equivale a agua potable certificada. El simulador no acredita TRL4 ni sirve para operar instalaciones físicas.
 
 ## Fuentes gráficas
-La identidad cromática se inspira en San Andrés, Colombia. La fotografía opcional de la cabecera, si está disponible, corresponde a «San Andrés Island Colombia.JPG» de Roberto San Andrés, CC0: https://commons.wikimedia.org/wiki/File:San_Andr%C3%A9s_Island_Colombia.JPG. El resto de gráficos y geometría se generan mediante código propio.
+La identidad cromática se inspira en San Andrés, Colombia. Las once imágenes originales dentro de assets/ se generaron para esta instalación ficticia y se comprimieron a WebP. La interfaz ya no depende de fotografías externas de terceros.
 
 ## Pruebas
 `node tests.mjs` para el motor; `node ui-tests.mjs` con Playwright instalado para la interfaz. El flujo de GitHub Actions publica evidencias de las pruebas antes de autorizar el despliegue.
@@ -33,3 +33,15 @@ Las rutas `/desalinizacion-zni/` y `/desalinizacion-zni/v2/` no se modifican por
 - CI funcional y WebGL: https://github.com/enriquevillap/enriquevillap.github.io/actions/runs/44459432362
 - GitHub Pages: https://github.com/enriquevillap/enriquevillap.github.io/actions/runs/44459623173
 - Verificación HTTP: https://github.com/enriquevillap/enriquevillap.github.io/actions/runs/44459622851
+
+## Actualización educativa e inmersiva del 19 de noviembre de 2026
+
+- Ayuda contextual para principiantes: qué es, para qué sirve y por qué importa cada componente, sensor o indicador.
+- Siete paisajes originales que se alternan automáticamente cada 15 segundos y al regresar al panorama.
+- Planta inmersiva con vista general generada y ojo de águila con puntos de interés, además del modelo WebGL.
+- Arquitectura IoT en cuatro vistas: diagrama lógico, mapa de red, 3D esquemático y recreación hiperrealista. Mensajes de datos simulados en cada modalidad.
+- Once escenas originales WebP versionadas en assets/ y cacheadas por PWA.
+- Pruebas integrales satisfactorias: https://github.com/enriquevillap/enriquevillap.github.io/actions/runs/44468747805.
+- Pull Request de integración: https://github.com/enriquevillap/enriquevillap.github.io/pull/3, commit 5ca00b4e36d180d1820d812c023db429f741db5a.
+
+Las escenas no representan una instalación real, no acreditan protección de arrecifes y no son planos de ingeniería. Las comunicaciones IoT son animaciones ficticias sin tráfico real.

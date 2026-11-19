@@ -21,3 +21,18 @@ El escenario virtual no mide sensores reales, no certifica agua potable, no prop
 
 ## Evidencia
 Revisar el workflow `AquaSeven V3 - validacion integral` en GitHub Actions y los artefactos PNG de escritorio, cabina, IoT, 3D y móvil.
+
+## Ampliación V3 educativa y IoT
+
+- [x] Panel explicativo sencillo para componentes, sensores e indicadores.
+- [x] Siete fondos originales y cambio de imagen al regresar al panorama.
+- [x] Temporizador de 15 segundos configurado en el código.
+- [x] Vista general e imagen aérea con puntos seleccionables.
+- [x] Arquitectura IoT con diagrama, mapa, vista isométrica 3D y escena realista.
+- [x] Paquetes simulados y eventos de interrupción en todas las modalidades.
+- [x] Once archivos WebP versionados y precargados en el shell PWA.
+- [x] CI matemático, navegador y WebGL completado: ejecución 44468747805.
+- [x] PR #3 fusionado en master sin alterar V1 ni V2.
+- [ ] Validación HTTP de la totalidad de assets pendiente de la próxima ejecución pública.
+
+La vista 3D de red es esquemática; no existe conexión a sensores físicos ni tráfico real de red.
