@@ -36,5 +36,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: zni-v2-captura
-          path: desalinizacion-zni/v2/v2-preview.png
+          path: |
+            desalinizacion-zni/v2/v2-preview.png
+            desalinizacion-zni/v2/v2-mobile-preview.png
           if-no-files-found: ignore
