@@ -33,7 +33,7 @@ jobs:
         working-directory: desalinizacion-zni/v3
         run: |
           npm install --no-save playwright@1.56.1
-          npx playwright install --with-deps chromium
+          npx playwright install chromium
       - name: Validar interfaz y planta WebGL
         working-directory: desalinizacion-zni/v3
         run: node ui-tests.mjs
