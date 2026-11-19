@@ -1,0 +1,39 @@
+name: AquaSeven V3 - verificacion de publicacion
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'desalinizacion-zni/v3/**'
+      - '.github/workflows/zni-v3-public.yml'
+  workflow_dispatch:
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Verificar URL, ficheros e independencia institucional
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://enriquevillap.github.io/desalinizacion-zni/v3"
+          for i in $(seq 1 30); do
+            echo "Comprobación $i de V3 en GitHub Pages"
+            if curl -fsSL --max-time 15 "$base/" -o /tmp/v3.html \
+              && grep -q 'AquaSeven' /tmp/v3.html \
+              && ! grep -Eiq 'UNAD|asignatura|Proyecto de Ingeniería|Proyecto de Grado' /tmp/v3.html \
+              && curl -fsSL --max-time 15 "$base/model.js" -o /tmp/model.js \
+              && curl -fsSL --max-time 15 "$base/plant3d.js" -o /tmp/3d.js \
+              && curl -fsSL --max-time 15 "$base/components.js" -o /tmp/components.js \
+              && curl -fsSL --max-time 15 "$base/app.js" -o /tmp/app.js \
+              && curl -fsSL --max-time 15 "$base/style.css" -o /tmp/style.css \
+              && curl -fsSL --max-time 15 "$base/sw.js" -o /tmp/sw.js \
+              && grep -q 'mountPlant3D' /tmp/3d.js \
+              && grep -q 'SENSOR_INFO' /tmp/components.js; then
+              echo "OK: V3 publicada con todos los módulos y sin textos institucionales."
+              exit 0
+            fi
+            sleep 12
+          done
+          echo "ERROR: no se comprobó despliegue V3" >&2
+          exit 1
