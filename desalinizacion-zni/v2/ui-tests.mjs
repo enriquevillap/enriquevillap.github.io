@@ -5,10 +5,10 @@ import {readFile} from "node:fs/promises";
 import {resolve,dirname,extname} from "node:path";
 import {fileURLToPath} from "node:url";
 const base=dirname(fileURLToPath(import.meta.url));
-const types={".html":"text/html; charset=utf-8",".css":"text/css; charset=utf-8",".js":"text/javascript; charset=utf-8"};
+const types={".html":"text/html; charset=utf-8",".css":"text/css; charset=utf-8",".js":"text/javascript; charset=utf-8",".svg":"image/svg+xml",".webmanifest":"application/manifest+json"};
 const server=http.createServer(async (req,res)=>{
   const route=(req.url||"/").split("?")[0];const name=route==="/"?"/index.html":route;
-  if(!/^\/(?:index\.html|style\.css|app\.js|model\.js|reports\.js)$/.test(name)){res.writeHead(404);res.end("Not found");return;}
+  if(!/^\/(?:index\.html|style\.css|app\.js|model\.js|reports\.js|sw\.js|manifest\.webmanifest|icon\.svg)$/.test(name)){res.writeHead(404);res.end("Not found");return;}
   try{let content=await readFile(resolve(base,"."+name));res.writeHead(200,{"Content-Type":types[extname(name)]});res.end(content);}
   catch(e){res.writeHead(500);res.end(String(e));}
 });
@@ -121,4 +121,15 @@ try{
  console.log("PASS emulación de pantalla móvil 390 px sin desbordamiento");
  assert.equal(errors.length,0,"Errores JS: "+errors.join(" | "));
  console.log("PASS suites y sin errores JS");
+ await page.reload({waitUntil:"networkidle"});
+ await page.waitForFunction(()=>Boolean(navigator.serviceWorker.controller),null,{timeout:15000});
+ await page.context().setOffline(true);
+ await page.reload({waitUntil:"domcontentloaded"});
+ assert.equal(await page.locator("h1").isVisible(),true);
+ await page.locator('[data-view="simulate"]').click();
+ assert.equal(await page.locator("#scenario option").count(),12);
+ assert.match(await page.locator("#browserNetwork").innerText(),/sin internet/i);
+ await page.context().setOffline(false);
+ console.log("PASS funcionamiento offline del shell PWA con controles locales");
+
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
