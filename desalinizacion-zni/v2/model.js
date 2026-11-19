@@ -1,5 +1,5 @@
 // Modelo académico: todos los resultados son virtuales. Sin sensores ni potabilidad certificada.
-export const MODEL_VERSION = "2.0.0-dev.2";
+export const MODEL_VERSION = "2.0.0-dev.3";
 export const DEFAULTS = Object.freeze({
   irradiance:800, feed:1.2, recovery:0.35, feedSalinity:35, rejection:0.99,
   temperature:25, tmp:55, sec:3.5, latency:1000, completeness:99.5,
@@ -54,7 +54,7 @@ export const SCENARIOS = Object.freeze({
   FILTER:{label:"Filtro obstruido",values:{filterPressureDrop:1.3}}
 });
 const LIMITS={irradiance:[0,1400],feed:[0,3],recovery:[0,0.9],feedSalinity:[0,100],
-  rejection:[0.9,1],temperature:[0,50],tmp:[0,100],sec:[0,30],latency:[0,120000],
+  rejection:[0.9,1],temperature:[0,50],tmp:[0,100],sec:[0.1,30],latency:[0,120000],
   completeness:[0,100],tankLevel:[0,100],tankCapacity:[0.1,500],
   demand:[0,5],duration:[0,24],filterPressureDrop:[0,10]};
 const BOOLEAN_KEYS=["pump","communication","reservePump"];
@@ -159,6 +159,7 @@ export function runRegressionTests(){
   test("Cero caudal: sin NaN",()=>Number.isFinite(simulate({feed:0}).brineSalinity));
   test("Recuperación cero: sin división por cero",()=>Number.isFinite(simulate({recovery:0}).effectiveRecovery));
   test("Entrada inválida rechazada",()=>{try{simulate({feed:-2});return false;}catch{return true;}});
+  test("SEC positivo obligatorio",()=>{try{simulate({sec:0});return false;}catch{return true;}});
   test("Prioridad bomba > comunicación",()=>simulate({pump:false,reservePump:false,communication:false}).state==="PUMP_FAILURE");
   test("Prioridad comunicación > salinidad",()=>simulate({communication:false,feedSalinity:70}).state==="COMMUNICATION_LOSS");
   test("Permeado fuera de criterio no entra al tanque",()=>simulate({feedSalinity:70,irradiance:1100}).productAccepted===0);
