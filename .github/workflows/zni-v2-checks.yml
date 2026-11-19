@@ -5,6 +5,9 @@ on:
       - feature/desalinizacion-zni-v2-modelo-iot
     paths:
       - 'desalinizacion-zni/v2/*.js'
+      - 'desalinizacion-zni/v2/*.mjs'
+      - 'desalinizacion-zni/v2/*.webmanifest'
+      - 'desalinizacion-zni/v2/*.svg'
       - 'desalinizacion-zni/v2/*.html'
       - 'desalinizacion-zni/v2/*.css'
       - 'desalinizacion-zni/v2/package.json'
