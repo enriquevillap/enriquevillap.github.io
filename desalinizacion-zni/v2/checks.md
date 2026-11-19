@@ -26,9 +26,9 @@ Ruta: desalinizacion-zni/v2/
 | C-21 | Exploración de 240 condiciones de proceso | CUMPLE | GitHub Actions 44451394759, tests.mjs | No constituye validación experimental |
 | C-22 | SEC no nulo como entrada | CUMPLE | GitHub Actions 44451394759, model.js | Verificar pertinencia con diseño físico posterior |
 | C-23 | Pantalla móvil emulada de 390 px | CUMPLE | GitHub Actions 44451394759 | Teléfono físico pendiente |
-| C-24 | Navegación por teclado y enlace de salto | IMPLEMENTADO / CI PENDIENTE | index.html, style.css, ui-tests.mjs | Confirmar corrida 44451496925 |
-| C-17 | Umbrales configurables con validación y persistencia local | IMPLEMENTADO / CI PENDIENTE | model.js, app.js, prueba Chromium | Verificar último commit |
-| C-18 | Reportes 24 h, 7 d, 30 d y total | IMPLEMENTADO / CI PENDIENTE | reports.js, app.js, tests.mjs | Verificar último commit |
-| C-19 | Evento de tanque sobre límite configurable | IMPLEMENTADO / CI PENDIENTE | model.js, suite de regresión | Verificar último commit |
+| C-24 | Navegación por teclado y enlace de salto | CUMPLE EN PRUEBA AUTOMATIZADA | GitHub Actions 44451496925, Chromium | Auditoría WCAG completa y dispositivos físicos pendientes |
+| C-17 | Umbrales configurables con validación y persistencia local | CUMPLE EN PRUEBA AUTOMATIZADA | GitHub Actions 44451496925 | Evaluación con usuarios pendiente |
+| C-18 | Reportes 24 h, 7 d, 30 d y total | CUMPLE EN PRUEBA AUTOMATIZADA | GitHub Actions 44451496925 | Verificación externa de reportes pendiente |
+| C-19 | Evento de tanque sobre límite configurable | CUMPLE EN PRUEBA AUTOMATIZADA | GitHub Actions 44451496925 | Calibración experimental no aplica |
 
 Los estados anteriores corresponden a verificación del software o del código, nunca a certificación de desempeño de una planta física. El commit 3017af338dafcc330294633822e5d264bc22a65e superó el pipeline completo (motor y navegador) el 18 de noviembre de 2026, hora local de Colombia. Las modificaciones posteriores requieren repetición del pipeline.
