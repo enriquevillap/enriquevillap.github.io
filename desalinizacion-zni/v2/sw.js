@@ -1,6 +1,6 @@
 // Almacenamiento del shell académico en el dispositivo; no sincronización de telemetría.
-const CACHE="zni-simulator-v2-shell-20261118-1";
-const APP_FILES=["./","./index.html","./style.css","./app.js","./model.js","./reports.js","./manifest.webmanifest","./icon.svg"];
+const CACHE="zni-simulator-v2-shell-20261118-2";
+const APP_FILES=["./","./index.html","./style.css","./app.js","./model.js","./reports.js","./plant3d.js","./manifest.webmanifest","./icon.svg"];
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(APP_FILES)).then(()=>self.skipWaiting()));
 });
