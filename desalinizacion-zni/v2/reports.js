@@ -20,7 +20,7 @@ export function aggregateHistory(history,period="all",now=Date.now()){
  const filtered=filterHistory(history,period,now);
  const totals={runs:filtered.length,durationHours:0,permeateVolumeM3:0,acceptedVolumeM3:0,
   divertedVolumeM3:0,virtualDemandM3:0,energyKWh:0,solarAvailableKWh:0,alarmCount:0,
-  stoppedRuns:0,energyLimitedRuns:0,offspecRuns:0};
+  stoppedRuns:0,energyLimitedRuns:0,offspecRuns:0,independentRuns:0,sequentialRuns:0};
  const byState={};const dailyMap=new Map();
  for(const e of filtered){
   const r=e.result, duration=Math.max(0,FINITE(r.duration));
@@ -43,6 +43,7 @@ export function aggregateHistory(history,period="all",now=Date.now()){
   if(["PUMP_FAILURE","COMMUNICATION_LOSS"].includes(r.state))totals.stoppedRuns++;
   if(r.state==="ENERGY_LIMIT")totals.energyLimitedRuns++;
   if(diverted>0)totals.offspecRuns++;
+  if(e.mode==="SECUENCIAL")totals.sequentialRuns++;else totals.independentRuns++;
   byState[r.state||"UNKNOWN"]=(byState[r.state||"UNKNOWN"]||0)+1;
   daily.runs++;daily.acceptedM3+=accepted;daily.energyKWh+=energy;daily.alarms+=alarms;
   dailyMap.set(dateKey,daily);
@@ -53,9 +54,9 @@ export function aggregateHistory(history,period="all",now=Date.now()){
   date:r.date,runs:r.runs,acceptedM3:round(r.acceptedM3),energyKWh:round(r.energyKWh),alarms:r.alarms
  }));
  return {period,label:REPORT_PERIODS[period].label,generatedAt:new Date(now).toISOString(),
-  disclaimer:"Agregados de ejecuciones sintéticas. Las fechas identifican cuándo se ejecutó el escenario, no cuándo operó una planta real.",
-  totals,byState,series,records:filtered.map(({id,date,scenario,modelVersion,result})=>({
-   id,date,scenario,modelVersion,
+  disclaimer:"Agregados de ejecuciones sintéticas. Las fechas identifican cuándo se ejecutó el escenario, no cuándo operó una planta real. Los ensayos independientes y las secuencias se reportan por separado y jamás equivalen a producción continua.",
+  totals,byState,series,records:filtered.map(({id,date,scenario,modelVersion,mode,result})=>({
+   id,date,scenario,modelVersion,mode:mode||"LEGADO",
    state:result.state||"UNKNOWN",action:result.action||"",
    durationHours:FINITE(result.duration),
    acceptedM3:round(Math.max(0,FINITE(result.productAccepted))*Math.max(0,FINITE(result.duration))),
