@@ -24,6 +24,14 @@ try{
  assert.equal(await page.locator("#kState").innerText(),"ENERGY_LIMIT");
  await page.screenshot({path:"v2-preview.png",fullPage:true});
  console.log("PASS landing + nominal state ENERGY_LIMIT");
+ const skip=page.locator(".skip-link");
+ assert.equal(await skip.getAttribute("href"),"#main");
+ await skip.focus();
+ assert.equal(await skip.evaluate(el=>getComputedStyle(el).top==="12px"),true);
+ await page.locator('.plantnode[data-node="Fotovoltaica"]').focus();
+ await page.keyboard.press("Enter");
+ assert.match(await page.locator("#nodeDetail").innerText(),/potencia útil/i);
+ console.log("PASS acceso por teclado y descripción de componente");
  await page.locator('[data-view="sensors"]').click();
  assert.equal(await page.locator("#sensorBody tr").count(),12);
  console.log("PASS 12 sensores sintéticos");
