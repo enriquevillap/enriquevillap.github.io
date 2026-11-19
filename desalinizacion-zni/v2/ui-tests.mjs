@@ -8,7 +8,7 @@ const base=dirname(fileURLToPath(import.meta.url));
 const types={".html":"text/html; charset=utf-8",".css":"text/css; charset=utf-8",".js":"text/javascript; charset=utf-8"};
 const server=http.createServer(async (req,res)=>{
   const route=(req.url||"/").split("?")[0];const name=route==="/"?"/index.html":route;
-  if(!/^\/(?:index\.html|style\.css|app\.js|model\.js)$/.test(name)){res.writeHead(404);res.end("Not found");return;}
+  if(!/^\/(?:index\.html|style\.css|app\.js|model\.js|reports\.js)$/.test(name)){res.writeHead(404);res.end("Not found");return;}
   try{let content=await readFile(resolve(base,"."+name));res.writeHead(200,{"Content-Type":types[extname(name)]});res.end(content);}
   catch(e){res.writeHead(500);res.end(String(e));}
 });
@@ -52,11 +52,33 @@ try{
  await page.locator('[data-view="history"]').click();
  assert.equal(Number(await page.locator("#histCount").innerText()),countBefore,"persistencia local entre recargas");
  console.log("PASS persistencia local entre recargas");
+ await page.locator("#reportPeriod").selectOption("all");
+ assert.match(await page.locator("#reportSummary").innerText(),/ejecuciones/);
+ const reportDownload=page.waitForEvent("download");
+ await page.locator("#exportReportCsv").click();
+ const reportFile=await reportDownload;
+ assert.match(reportFile.suggestedFilename(),/zni-v2-reporte-all.csv/);
+ console.log("PASS reportes agregados y exportación");
  const pending=page.waitForEvent("download");
  await page.locator("#exportCsv").click();
  const artifact=await pending;
  assert.match(artifact.suggestedFilename(),/zni-v2-registros.csv/);
  console.log("PASS exportación CSV");
+ await page.locator('[data-view="settings"]').click();
+ await page.fill("#threshold-cpMax","0.25");
+ await page.locator("#saveThresholds").click();
+ assert.match(await page.locator("#thresholdMsg").innerText(),/guardados/);
+ await page.reload({waitUntil:"networkidle"});
+ await page.locator('[data-view="settings"]').click();
+ assert.equal(await page.inputValue("#threshold-cpMax"),"0.25");
+ await page.locator('[data-view="simulate"]').click();
+ await page.selectOption("#scenario","V01");
+ await page.fill("#irradiance","1200");
+ await page.locator("#run").click();
+ assert.match(await page.locator("#resultBlock").innerText(),/HIGH_SALINITY/);
+ await page.locator('[data-view="settings"]').click();
+ await page.locator("#restoreThresholds").click();
+ console.log("PASS configuración de umbrales persistente y control del modelo");
  await page.locator('[data-view="tests"]').click();
  await page.locator("#runTests").click();
  assert.match(await page.locator("#testResults").innerText(),/comprobaciones satisfactorias/);
