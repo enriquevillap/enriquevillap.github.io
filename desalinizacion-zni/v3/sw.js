@@ -1,5 +1,5 @@
-const VERSION="aquaseven-v3-cache-20261119-1";
-const ASSETS=["./","./index.html","./style.css","./app.js","./model.js","./reports.js","./components.js","./plant3d.js","./icon.svg","./manifest.webmanifest"];
+const VERSION="aquaseven-v3-cache-20261119-2";
+const ASSETS=["./","./index.html","./style.css","./app.js","./model.js","./reports.js","./components.js","./plant3d.js","./experience.js","./experience.css","./icon.svg","./assets/panorama-01.webp","./assets/panorama-02.webp","./assets/panorama-03.webp","./assets/panorama-04.webp","./assets/panorama-05.webp","./assets/panorama-06.webp","./assets/panorama-07.webp","./assets/planta-general.webp","./assets/planta-aerea.webp","./assets/iot-mapa.webp","./assets/iot-realista.webp","./manifest.webmanifest"];
 self.addEventListener("install",event=>event.waitUntil(caches.open(VERSION).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith("aquaseven-v3-cache-")&&k!==VERSION).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener("fetch",event=>{
