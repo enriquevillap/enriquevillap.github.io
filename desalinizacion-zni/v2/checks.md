@@ -22,5 +22,8 @@ Ruta: desalinizacion-zni/v2/
 | C-14 | Prueba en otro dispositivo físico | NO VERIFICABLE | No se aportó evidencia | Ejecutar y documentar |
 | C-15 | Calidad real, validación experimental y TRL4 | NO APLICA A ESTA VERSIÓN | Alcance del README y guías | Diseñar protocolo posterior |
 | C-16 | Vista 3D hiperrealista | PENDIENTE POR DISEÑO | Hoja de ruta y README | SOLO DESPUÉS de los demás controles |
+| C-17 | Umbrales configurables con validación y persistencia local | IMPLEMENTADO / CI PENDIENTE | model.js, app.js, prueba Chromium | Verificar último commit |
+| C-18 | Reportes 24 h, 7 d, 30 d y total | IMPLEMENTADO / CI PENDIENTE | reports.js, app.js, tests.mjs | Verificar último commit |
+| C-19 | Evento de tanque sobre límite configurable | IMPLEMENTADO / CI PENDIENTE | model.js, suite de regresión | Verificar último commit |
 
 Los estados anteriores corresponden a verificación del software o del código, nunca a certificación de desempeño de una planta física. El commit 3017af338dafcc330294633822e5d264bc22a65e superó el pipeline completo (motor y navegador) el 18 de noviembre de 2026, hora local de Colombia. Las modificaciones posteriores requieren repetición del pipeline.
