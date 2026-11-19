@@ -36,9 +36,22 @@ function getForm(){
  for(const id of ["pump","reservePump","communication"])data[id]=$(id).checked;
  return data;
 }
+let scenePromise=null,sceneController=null;
+function initializeScene(){
+ if(scenePromise)return scenePromise;
+ scenePromise=import("./plant3d.js").then(({mountPlant3D})=>{
+   sceneController=mountPlant3D($("plant3dCanvas"),$("sceneDescription"),()=>state.current||simulate(DEFAULTS,null,state.thresholds));
+   return sceneController;
+ }).catch(err=>{
+   $("sceneDescription").textContent="No se pudo cargar la representación 3D. La planta 2D y las funciones del simulador siguen disponibles. Detalle: "+err.message;
+   console.warn("Escena tridimensional:",err);scenePromise=null;return null;
+ });
+ return scenePromise;
+}
 function changeView(view){
  document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id==="view-"+view));
  document.querySelectorAll(".nav").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
+ if(view==="plant3d")initializeScene();
  window.scrollTo({top:0,behavior:"smooth"});
 }
 function activateScenario(code){const s=SCENARIOS[code];if(!s)return;setForm({...DEFAULTS,...s.values});}
@@ -169,6 +182,16 @@ function renderReport(){
  '<tr><td colspan="5">No hay simulaciones con fecha válida para el período.</td></tr>';
 }
 function wire(){
+ $("sceneReset").onclick=()=>sceneController?.reset();
+ $("sceneZoomIn").onclick=()=>sceneController?.zoomIn();
+ $("sceneZoomOut").onclick=()=>sceneController?.zoomOut();
+ $("sceneRotate").onclick=()=>{
+  if(!sceneController)return;
+  const active=sceneController.toggleRotate();
+  $("sceneRotate").setAttribute("aria-pressed",String(active));
+  $("sceneRotate").textContent=active?"Detener rotación automática":"Activar rotación automática";
+ };
+ $("sceneFocus").onchange=()=>sceneController?.focus($("sceneFocus").value);
  document.querySelectorAll(".nav").forEach(n=>n.addEventListener("click",()=>changeView(n.dataset.view)));
  $("jumpSim").onclick=()=>changeView("simulate");$("jumpIot").onclick=()=>changeView("iot");
  document.querySelectorAll(".plantnode").forEach(node=>{const select=()=>{state.node=node.dataset.node;render();};node.onclick=select;node.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();select();}}});
