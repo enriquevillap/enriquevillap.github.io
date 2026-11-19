@@ -29,7 +29,7 @@ try{
 
  assert.equal(await page.locator("#heroPosition").innerText(),"1 / 7");
  assert.match(await page.locator(".hero-water").evaluate(el=>getComputedStyle(el).backgroundImage),/panorama-01/);
- const imgResponse=await page.request.get("/assets/planta-general.webp");
+ const imgResponse=await page.request.get(new URL("/assets/planta-general.webp",page.url()).href);
  assert.equal(imgResponse.status(),200);
  assert.match(imgResponse.headers()["content-type"],/image\/webp/);
  await page.locator('[data-explain="power"]').click();
