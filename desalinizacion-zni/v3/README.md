@@ -1,8 +1,8 @@
 # AquaSeven V3 · Desalinización inteligente
 
-**Vista pública prevista:** https://enriquevillap.github.io/desalinizacion-zni/v3/
+**Versión pública desplegada y verificada:** https://enriquevillap.github.io/desalinizacion-zni/v3/
 
-**Desarrollo aislado:** rama `feature/desalinizacion-zni-v3-caribe-premium`, directorio `desalinizacion-zni/v3/`.
+**Rama de desarrollo conservada:** rama `feature/desalinizacion-zni-v3-caribe-premium`, directorio `desalinizacion-zni/v3/`.
 
 ## Componentes
 - Interfaz premium inspirada en los colores del mar de San Andrés.
@@ -25,3 +25,11 @@ La identidad cromática se inspira en San Andrés, Colombia. La fotografía opci
 
 ## Versiones previas
 Las rutas `/desalinizacion-zni/` y `/desalinizacion-zni/v2/` no se modifican por la V3.
+
+## Evidencias de liberación
+
+- URL pública: https://enriquevillap.github.io/desalinizacion-zni/v3/
+- Pull Request: https://github.com/enriquevillap/enriquevillap.github.io/pull/2
+- CI funcional y WebGL: https://github.com/enriquevillap/enriquevillap.github.io/actions/runs/44459432362
+- GitHub Pages: https://github.com/enriquevillap/enriquevillap.github.io/actions/runs/44459623173
+- Verificación HTTP: https://github.com/enriquevillap/enriquevillap.github.io/actions/runs/44459622851
