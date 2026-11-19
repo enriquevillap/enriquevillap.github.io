@@ -42,15 +42,16 @@ function changeView(view){
  window.scrollTo({top:0,behavior:"smooth"});
 }
 function activateScenario(code){const s=SCENARIOS[code];if(!s)return;setForm({...DEFAULTS,...s.values});}
-function execute(code=null,keepTank=true){
+function execute(code=null,keepTank=false){
  try{
   const raw=getForm();
-  const prev=keepTank&&state.current?state.current.tankLevelNext:null;
+  const chained=Boolean(keepTank&&state.current);
+  const prev=chained?state.current.tankLevelNext:null;
   const result=simulate(raw,prev,state.thresholds);
   state.current=result;
   const id="SIM-"+new Date().toISOString().replace(/[^\d]/g,"").slice(0,14)+"-"+(++state.seq);
   const entry={id,date:new Date().toISOString(),scenario:code||$("scenario").value,modelVersion:MODEL_VERSION,
-    inputs:raw,result};
+    inputs:raw,mode:chained?"SECUENCIAL":"INDEPENDIENTE",result};
   state.history.push(entry);
   if(state.history.length>1000)state.history.shift();
   for(const alarm of result.alarms){
@@ -107,7 +108,7 @@ function render(){
  $("histCount").textContent=state.history.length;
  $("histVolume").textContent=fmt(state.history.reduce((s,x)=>s+(x.result?.productAccepted||0)*(x.result?.duration||0),0),2)+" m³";
  $("histEnergy").textContent=fmt(state.history.reduce((s,x)=>s+(x.result?.usableEnergy||0),0),2)+" kWh";
- $("historyBody").innerHTML=state.history.length?state.history.slice(-200).reverse().map(x=>'<tr><td>'+escape(x.id)+'</td><td>'+escape(new Date(x.date).toLocaleString("es-CO"))+'</td><td>'+escape(x.scenario)+'</td><td>'+escape(x.result.state)+'</td><td>'+fmt(x.result.permeate,3)+'</td><td>'+fmt(x.result.usefulPower)+'</td><td>'+fmt(x.result.nominalRequired)+'</td><td>'+fmt(x.result.tankLevelNext,1)+'</td></tr>').join(""):'<tr><td colspan="8">Aún no hay ejecuciones.</td></tr>';
+ $("historyBody").innerHTML=state.history.length?state.history.slice(-200).reverse().map(x=>'<tr><td>'+escape(x.id)+'</td><td>'+escape(new Date(x.date).toLocaleString("es-CO"))+'</td><td>'+escape(x.scenario)+'</td><td>'+escape(x.mode||"LEGADO")+'</td><td>'+escape(x.result.state)+'</td><td>'+fmt(x.result.permeate,3)+'</td><td>'+fmt(x.result.usefulPower)+'</td><td>'+fmt(x.result.nominalRequired)+'</td><td>'+fmt(x.result.tankLevelNext,1)+'</td></tr>').join(""):'<tr><td colspan="9">Aún no hay ejecuciones.</td></tr>';
  $("queueStatus").textContent="Cola local: "+state.queue.filter(x=>x.status!=="Sincronizado virtualmente").length+" pendientes de sincronización simulada · "+state.queue.length+" registros totales. NO se transmiten datos a servidores.";
  renderReport();
  drawChart();
@@ -133,7 +134,7 @@ function csvRows(rows){
  const keys=[...new Set(rows.flatMap(x=>Object.keys(x)))];
  return [keys.map(csvEscape).join(";"),...rows.map(x=>keys.map(k=>csvEscape(x[k])).join(";"))].join("\r\n");
 }
-function flattenHistory(){return state.history.map(x=>({id:x.id,fecha:x.date,escenario:x.scenario,version:x.modelVersion,
+function flattenHistory(){return state.history.map(x=>({id:x.id,fecha:x.date,escenario:x.scenario,modo:x.mode||"LEGADO",version:x.modelVersion,
   estado:x.result.state,accion:x.result.action,irradiancia_Wm2:x.result.irradiance,
   caudal_alimentacion_m3h:x.result.feedEffective,caudal_permeado_m3h:x.result.permeate,
   caudal_rechazo_m3h:x.result.brine,permeado_aceptado_m3h:x.result.productAccepted,permeado_desviado_m3h:x.result.divertedPermeate,potencia_util_kW:x.result.usefulPower,
@@ -172,22 +173,26 @@ function wire(){
  $("jumpSim").onclick=()=>changeView("simulate");$("jumpIot").onclick=()=>changeView("iot");
  document.querySelectorAll(".plantnode").forEach(node=>{const select=()=>{state.node=node.dataset.node;render();};node.onclick=select;node.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();select();}}});
  $("scenario").onchange=()=>activateScenario($("scenario").value);
- $("run").onclick=()=>execute();
- $("reset").onclick=()=>{setForm(DEFAULTS);$("scenario").value="V01";};
+ $("run").onclick=()=>execute(null,$("chainScenarios").checked);
+ $("reset").onclick=()=>{setForm(DEFAULTS);$("scenario").value="V01";$("chainScenarios").checked=false;};
  $("demo").onclick=()=>{
-  for(const key of ["V01","V02","V04","V06","V09","V10"]){activateScenario(key);execute(key,true);}
+  // La secuencia demostrativa parte de su propio estado inicial, sin heredar el anterior.
+  let first=true;
+  for(const key of ["V01","V02","V04","V06","V09","V10"]){activateScenario(key);execute(key,!first);first=false;}
   changeView("history");
  };
  $("recoverProfile").onclick=()=>{
+  let first=true;
   for(const irradiance of [400,600,800,1000]){
     setForm({...DEFAULTS,pump:true,reservePump:true,communication:true,irradiance});
-    execute("V10",true);
+    execute("V10",!first);first=false;
   }
   changeView("history");
  };
  $("solarProfile").onclick=()=>{
+  let first=true;
   for(const irradiance of [800,750,600,400,300,400,600,750,800]){
-    setForm({...DEFAULTS,irradiance});execute("V07",true);
+    setForm({...DEFAULTS,irradiance});execute("V07",!first);first=false;
   }
   changeView("history");
  };
