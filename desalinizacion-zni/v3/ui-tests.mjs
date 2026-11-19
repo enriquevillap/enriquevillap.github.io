@@ -34,7 +34,7 @@ try{
  console.log("PASS cabina digital conectada al motor");
  await page.locator('[data-view="iot"]').click();
  assert.equal(await page.locator("#archProcess .arch-node").count(),7);
- await page.locator('[data-component="pump"]').first().click();
+ await page.locator('#archProcess [data-component="pump"]').click();
  assert.match(await page.locator("#iotTitle").innerText(),/Bombeo/);
  assert.match(await page.locator("#iotMeasures").innerText(),/Caudal/);
  await page.screenshot({path:"v3-iot.png",fullPage:true});
