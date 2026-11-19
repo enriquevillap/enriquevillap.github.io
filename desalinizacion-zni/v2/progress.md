@@ -23,6 +23,15 @@ Se identificó el repositorio que realmente contiene la V1: enriquevillap/enriqu
 - Pruebas ampliadas para reportes, umbrales, persistencia y CSV.
 - Se debe comprobar el pipeline del commit más reciente antes de aceptar estos cambios como validados.
 
+## Tercera iteración: comparabilidad y auditoría automática
+
+- Los ensayos manuales independientes ya no heredan el nivel del tanque; las simulaciones encadenadas requieren activación explícita. Cada registro señala su modalidad.
+- Se añadió distinción del modo de simulación a las exportaciones y a los contadores del informe.
+- El motor exige un consumo energético específico positivo. Su versión actual es `2.0.0-dev.3`.
+- Los controles automáticos completaron **24/24**, y 240 casos de propiedades reproducibles superaron balances, límites y finitud, según GitHub Actions 44451394759.
+- La emulación móvil de 390 px pasó en ese mismo run; la verificación con teclado se agregó posteriormente y su último pipeline está pendiente.
+- La experiencia 3D hiperrealista continúa expresamente **pospuesta hasta el final**.
+
 ## Pendientes por prioridad
 1. Revisar visualmente la captura automática y ejecutar un ensayo manual de los controles en navegador local o Codespaces.
 2. Validar manualmente en navegador y móvil, usabilidad, persistencia y accesibilidad.
