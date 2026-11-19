@@ -83,6 +83,7 @@ export function simulate(raw={},previousTankLevel=null,customThresholds={}){
   const energyBad=usefulPower+1e-9<nominalRequired;
   const pumpBad=!a.pump&&!a.reservePump;
   const tankLow=tankInitial<thresholds.tankMin;
+  const tankHigh=tankInitial>thresholds.tankMax;
   const tmpHigh=a.tmp>thresholds.tmpMax;
   const filterBad=a.filterPressureDrop>thresholds.filterDpMax;
   let state="NORMAL",action="MAINTAIN",load=1;
@@ -93,6 +94,7 @@ export function simulate(raw={},previousTankLevel=null,customThresholds={}){
   else if(energyBad){state="ENERGY_LIMIT";action="REDUCE_LOAD";load=nominalRequired>0?Math.min(1,usefulPower/nominalRequired):1;}
   else if(tmpHigh||filterBad){state="PROCESS_LIMIT";action="REDUCE_LOAD";load=0.6;}
   else if(tankLow){state="LOW_TANK";action="WATCH";load=1;}
+  else if(tankHigh){state="HIGH_TANK";action="REDUCE_LOAD";load=0.5;}
   // Incluso si salinidad o proceso tiene prioridad, no consumir potencia inexistente.
   if(load>0 && nominalRequired>0)load=Math.min(load,usefulPower/nominalRequired);
   if(energyBad)alarms.push({code:"ENERGY_LIMIT",severity:"warning",message:"Potencia FV inferior a la demanda de diseño"});
@@ -102,6 +104,7 @@ export function simulate(raw={},previousTankLevel=null,customThresholds={}){
   if(tmpHigh)alarms.push({code:"TMP_HIGH",severity:"warning",message:"Presión de membrana superior al umbral"});
   if(filterBad)alarms.push({code:"FILTER_DP_HIGH",severity:"warning",message:"Caída de presión en filtros elevada"});
   if(tankLow)alarms.push({code:"LOW_TANK",severity:"warning",message:"Almacenamiento por debajo del mínimo"});
+  if(tankHigh)alarms.push({code:"HIGH_TANK",severity:"warning",message:"Nivel de tanque sobre umbral de alerta"});
   // La orden REDUCE_LOAD se refleja en la producción: cierre de la brecha de la versión 1.
   // Se mantiene el caudal de alimentación como dato nominal disponible, sin fingir un PLC físico.
   const permeate=designPermeate*load;
@@ -163,5 +166,7 @@ export function runRegressionTests(){
   test("Umbral de calidad configurable despliega desvío",()=>simulate({irradiance:1200},null,{cpMax:0.25}).productAccepted===0);
   test("Umbral de comunicación configurable opera",()=>simulate({latency:2000,irradiance:1200},null,{latencyMax:1000}).action==="SAFE_MODE");
   test("Umbrales inconsistentes rechazados",()=>{try{validateThresholds({tankMin:90,tankMax:80});return false;}catch{return true;}});
+  test("Tanque alto: umbral genera alerta",()=>simulate({tankLevel:98,irradiance:1200}).alarms.some(a=>a.code==="HIGH_TANK"));
+  test("Tanque alto: umbral configurable",()=>simulate({tankLevel:75,irradiance:1200},null,{tankMax:70}).state==="HIGH_TANK");
   return {passed:checks.filter(x=>x.pass).length,total:checks.length,checks};
 }
