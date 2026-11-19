@@ -5,11 +5,11 @@ import {readFile} from "node:fs/promises";
 import {resolve,dirname,extname} from "node:path";
 import {fileURLToPath} from "node:url";
 const root=dirname(fileURLToPath(import.meta.url));
-const type={".html":"text/html; charset=utf-8",".js":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8",".svg":"image/svg+xml",".webmanifest":"application/manifest+json",".md":"text/markdown"};
+const type={".html":"text/html; charset=utf-8",".js":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8",".svg":"image/svg+xml",".webp":"image/webp",".webmanifest":"application/manifest+json",".md":"text/markdown"};
 const server=http.createServer(async(req,res)=>{
  const route=new URL(req.url,"http://localhost").pathname;
  const name=route==="/"?"/index.html":route;
- if(!/^\/(?:index\.html|style\.css|app\.js|model\.js|reports\.js|components\.js|plant3d\.js|sw\.js|icon\.svg|manifest\.webmanifest)$/.test(name)){res.writeHead(404);res.end("not found");return}
+ if(!(/^\/(?:index\.html|style\.css|experience\.css|app\.js|experience\.js|model\.js|reports\.js|components\.js|plant3d\.js|sw\.js|icon\.svg|manifest\.webmanifest)$/.test(name)||/^\/assets\/(?:panorama-0[1-7]|planta-general|planta-aerea|iot-mapa|iot-realista)\.webp$/.test(name))){res.writeHead(404);res.end("not found");return}
  try{const b=await readFile(resolve(root,"."+name));res.writeHead(200,{"Content-Type":type[extname(name)]});res.end(b)}
  catch(e){res.writeHead(500);res.end(String(e))}
 });
@@ -26,6 +26,20 @@ try{
  const visibleText=await page.locator("body").innerText();
  assert.doesNotMatch(visibleText,/\bUNAD\b|Proyecto de Ingeniería|Proyecto de Grado|asignatura|rúbrica|fase 4/i);
  await page.screenshot({path:"v3-panorama.png",fullPage:true});
+
+ assert.equal(await page.locator("#heroPosition").innerText(),"1 / 7");
+ assert.match(await page.locator(".hero-water").evaluate(el=>getComputedStyle(el).backgroundImage),/panorama-01/);
+ const imgResponse=await page.request.get("/assets/planta-general.webp");
+ assert.equal(imgResponse.status(),200);
+ assert.match(imgResponse.headers()["content-type"],/image\/webp/);
+ await page.locator('[data-explain="power"]').click();
+ assert.match(await page.locator("#eduTitle").innerText(),/Energía solar útil/);
+ assert.match(await page.locator("#eduWhy").innerText(),/insuficiente/);
+ await page.locator("#eduClose").click();
+ await page.locator('[data-view="control"]').click();
+ await page.locator('[data-view="home"]').click();
+ assert.equal(await page.locator("#heroPosition").innerText(),"2 / 7");
+ console.log("PASS siete panoramas originales, cambio al regresar, panel pedagógico y WebP local");
  console.log("PASS home, identidad Caribe y ausencia de textos institucionales");
  await page.locator('[data-view="control"]').click();
  assert.equal(await page.locator("#view-control").isVisible(),true);
@@ -38,13 +52,34 @@ try{
  assert.match(await page.locator("#iotTitle").innerText(),/bombeo/i);
  assert.match(await page.locator("#iotMeasures").innerText(),/Caudal/);
  await page.screenshot({path:"v3-iot.png",fullPage:true});
+
+ assert.match(await page.locator("#eduTitle").innerText(),/Bombeo/i);
+ await page.locator("#eduClose").click();
+ await page.locator('[data-iot-mode="map"]').click();
+ assert.equal(await page.locator("#iotVisual").isVisible(),true);
+ assert.match(await page.locator("#iotVisual").evaluate(el=>el.style.backgroundImage),/iot-mapa/);
+ await page.locator("#iotPhotoHotspots [data-component='solar']").click();
+ assert.match(await page.locator("#eduTitle").innerText(),/fotovoltaico/i);
+ await page.locator("#eduClose").click();
+ await page.locator('[data-iot-mode="three"]').click();
+ assert.equal(await page.locator("#iotNetworkRoot .network-node").count(),12);
+ await page.locator('[data-iot-mode="real"]').click();
+ assert.match(await page.locator("#iotVisual").evaluate(el=>el.style.backgroundImage),/iot-realista/);
+ await page.waitForFunction(()=>Number(document.querySelector("#packetCounter").textContent.match(/\d+/)?.[0]||0)>0,null,{timeout:8000});
+ assert.match(await page.locator("#packetLog").innerText(),/ENTREGADO/);
+ await page.locator('[data-iot-mode="logic"]').click();
+ assert.equal(await page.locator(".architecture").isVisible(),true);
+ console.log("PASS paquetes simulados, cuatro vistas IoT y explicación interactiva");
  console.log("PASS arquitectura IoT y ficha por componente");
  await page.locator('[data-view="sensors"]').click();
  assert.equal(await page.locator("#sensorGrid .sensor-card").count(),12);
  await page.locator('[data-sensor="NIV-01"]').click();
  assert.match(await page.locator("#sensorTitle").innerText(),/Nivel/);
  assert.match(await page.locator("#sensorGauge").innerText(),/50/);
- console.log("PASS sensores con gauge y tendencia");
+
+ assert.match(await page.locator("#eduTitle").innerText(),/Nivel del tanque/i);
+ await page.locator("#eduClose").click();
+ console.log("PASS sensores con gauge, tendencia y explicación para principiantes");
  await page.locator('[data-view="simulate"]').click();
  await page.selectOption("#scenario","V09");
  await page.locator("#run").click();
@@ -85,7 +120,15 @@ try{
  assert.equal(await page.locator("#modePhoto").getAttribute("aria-pressed"),"true");
  await page.locator("#mode3d").click();
  assert.equal(await page.locator("#plant3dMount canvas").isVisible(),true);
- console.log("PASS WebGL PBR, tanque, zoom, rotación y referencia fotográfica");
+
+ assert.equal(await page.locator("#modePhoto").innerText(),"Vista general");
+ await page.locator("#modeAerial").click();
+ assert.equal(await page.locator("#eagleView").isVisible(),true);
+ await page.locator("#eagleHotspots [data-component='tank']").click();
+ assert.match(await page.locator("#eduWhy").innerText(),/tanque/i);
+ await page.locator("#eduClose").click();
+ await page.locator("#mode3d").click();
+ console.log("PASS planta 3D, vista general ficticia, ojo de águila y puntos pedagógicos");
  await page.setViewportSize({width:390,height:844});
  await page.locator('[data-view="home"]').click();
  const mobile=await page.evaluate(()=>({width:document.documentElement.scrollWidth,viewport:innerWidth}));
