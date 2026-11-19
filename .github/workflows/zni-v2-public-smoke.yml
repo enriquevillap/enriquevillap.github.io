@@ -1,0 +1,36 @@
+name: ZNI V2 - verificacion de publicacion GitHub Pages
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'desalinizacion-zni/v2/**'
+      - '.github/workflows/zni-v2-public-smoke.yml'
+  workflow_dispatch:
+jobs:
+  verify-public-site:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Comprobar URL y recursos públicos sin modificar sitio original
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://enriquevillap.github.io/desalinizacion-zni/v2/"
+          for attempt in $(seq 1 30); do
+            echo "Intento $attempt: $base"
+            if curl --fail --silent --show-error --location --max-time 20 "$base" -o /tmp/zni-v2.html \
+             && grep -q 'DESALINIZACIÓN ZNI' /tmp/zni-v2.html \
+             && curl --fail --silent --show-error --location --max-time 20 "$base/app.js" -o /tmp/zni-app.js \
+             && curl --fail --silent --show-error --location --max-time 20 "$base/model.js" -o /tmp/zni-model.js \
+             && curl --fail --silent --show-error --location --max-time 20 "$base/plant3d.js" -o /tmp/zni-3d.js \
+             && curl --fail --silent --show-error --location --max-time 20 "$base/sw.js" -o /tmp/zni-sw.js \
+             && grep -q 'mountPlant3D' /tmp/zni-3d.js \
+             && grep -q 'MODEL_VERSION' /tmp/zni-model.js; then
+              echo "OK: portada + modelo + interfaz + 3D + PWA disponibles públicamente."
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "ERROR: publicacion no verificable." >&2
+          exit 1
