@@ -18,5 +18,16 @@ jobs:
         with:
           node-version: '22'
       - name: Probar motor matematico y casos V01 a V10
-        run: npm test
+        run: |
+          node --check model.js
+          node --check app.js
+          npm test
+        working-directory: desalinizacion-zni/v2
+      - name: Instalar navegador de prueba
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+        working-directory: desalinizacion-zni/v2
+      - name: Probar interfaz, escenarios y descarga CSV
+        run: node ui-tests.mjs
         working-directory: desalinizacion-zni/v2
