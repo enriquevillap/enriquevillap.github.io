@@ -82,6 +82,13 @@ try{
  await page.locator('[data-view="tests"]').click();
  await page.locator("#runTests").click();
  assert.match(await page.locator("#testResults").innerText(),/comprobaciones satisfactorias/);
+ await page.setViewportSize({width:390,height:844});
+ await page.locator('[data-view="overview"]').click();
+ assert.equal(await page.locator("#kState").isVisible(),true);
+ const mobileWidth=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,viewport:innerWidth}));
+ assert.ok(mobileWidth.scroll<=mobileWidth.viewport+3,"Desbordamiento móvil "+JSON.stringify(mobileWidth));
+ await page.screenshot({path:"v2-mobile-preview.png",fullPage:true});
+ console.log("PASS emulación de pantalla móvil 390 px sin desbordamiento");
  assert.equal(errors.length,0,"Errores JS: "+errors.join(" | "));
  console.log("PASS suites y sin errores JS");
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
