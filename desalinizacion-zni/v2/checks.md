@@ -21,14 +21,19 @@ Ruta: desalinizacion-zni/v2/
 | C-13 | Captura automática y persistencia tras recarga | CUMPLE | GitHub Actions run 44448345825; artefacto zni-v2-captura | Pruebas en segundo dispositivo: pendientes |
 | C-14 | Prueba en otro dispositivo físico | NO VERIFICABLE | No se aportó evidencia | Ejecutar y documentar |
 | C-15 | Calidad real, validación experimental y TRL4 | NO APLICA A ESTA VERSIÓN | Alcance del README y guías | Diseñar protocolo posterior |
-| C-16 | Vista 3D hiperrealista | PENDIENTE POR DISEÑO | Hoja de ruta y README | SOLO DESPUÉS de los demás controles |
+| C-16 | Vista espacial 3D incorporada al final | CUMPLE COMO ESCENA CONCEPTUAL | plant3d.js, GitHub Actions 44453685877 | Hiperrealismo BIM/CAD no verificable ni reivindicado |
 | C-20 | Modo independiente vs. secuencial documentado | CUMPLE | GitHub Actions 44451394759, prueba navegador de tanque | Comprobar UX por usuarios |
 | C-21 | Exploración de 240 condiciones de proceso | CUMPLE | GitHub Actions 44451394759, tests.mjs | No constituye validación experimental |
 | C-22 | SEC no nulo como entrada | CUMPLE | GitHub Actions 44451394759, model.js | Verificar pertinencia con diseño físico posterior |
 | C-23 | Pantalla móvil emulada de 390 px | CUMPLE | GitHub Actions 44451394759 | Teléfono físico pendiente |
-| C-24 | Navegación por teclado y enlace de salto | CUMPLE EN PRUEBA AUTOMATIZADA | GitHub Actions 44451496925, Chromium | Auditoría WCAG completa y dispositivos físicos pendientes |
+| C-24 | Navegación por teclado y enlace de salto | CUMPLE EN PRUEBA AUTOMATIZADA | GitHub Actions 44453685877, Chromium | Auditoría WCAG completa y dispositivos físicos pendientes |
 | C-17 | Umbrales configurables con validación y persistencia local | CUMPLE EN PRUEBA AUTOMATIZADA | GitHub Actions 44451496925 | Evaluación con usuarios pendiente |
 | C-18 | Reportes 24 h, 7 d, 30 d y total | CUMPLE EN PRUEBA AUTOMATIZADA | GitHub Actions 44451496925 | Verificación externa de reportes pendiente |
 | C-19 | Evento de tanque sobre límite configurable | CUMPLE EN PRUEBA AUTOMATIZADA | GitHub Actions 44451496925 | Calibración experimental no aplica |
 
-Los estados anteriores corresponden a verificación del software o del código, nunca a certificación de desempeño de una planta física. El commit 3017af338dafcc330294633822e5d264bc22a65e superó el pipeline completo (motor y navegador) el 18 de noviembre de 2026, hora local de Colombia. Las modificaciones posteriores requieren repetición del pipeline.
+Los controles anteriores describen únicamente el software académico, no el desempeño de una planta física. El flujo final 44453685877 superó las pruebas de motor, navegador, PWA y escena tridimensional. La V2 se publicó en master mediante PR #1 sin cambios en el archivo V1 y la verificación pública 44453927957 fue satisfactoria.
+
+| C-25 | PWA y navegación offline del shell | CUMPLE EN CHROMIUM | GitHub Actions 44453685877 | Ensayo offline en teléfono físico pendiente |
+| C-26 | Escena 3D con controles y acceso offline | CUMPLE COMO MODELO CONCEPTUAL | GitHub Actions 44453685877 | No es reconstrucción hiperrealista validada |
+| C-27 | GitHub Pages V2 publicado, URL y recursos | CUMPLE | GitHub Actions 44453927145 y 44453927957 | Monitorear versiones posteriores |
+| C-28 | V1 sin alteraciones | CUMPLE | SHA `8d1926b1b61b0a70ec4fa552aa1b16644e97efab` | Evitar reemplazos futuros |

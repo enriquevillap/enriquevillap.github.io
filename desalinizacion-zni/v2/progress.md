@@ -1,8 +1,8 @@
-# Registro de avance · Desarrollo V2
+# Registro de avance y despliegue · Digital Twin ZNI V2
 Fecha: 2026-11-18 (America/Bogota)
 
 ## Decisión arquitectónica
-Se identificó el repositorio que realmente contiene la V1: enriquevillap/enriquevillap.github.io, rama master, directorio desalinizacion-zni. Se creó una rama independiente feature/desalinizacion-zni-v2-modelo-iot. La nueva versión está aislada en desalinizacion-zni/v2/.
+Se identificó el repositorio que realmente contiene la V1: enriquevillap/enriquevillap.github.io, rama master, directorio desalinizacion-zni. Se creó una rama independiente feature/desalinizacion-zni-v2-modelo-iot. La V2 fue implementada de forma aislada en desalinizacion-zni/v2/ y publicada luego en master sin modificar la V1.
 
 ## Implementado
 - Motor matemático determinista con potencia requerida variable, balances hídricos/salinos y prioridades de control.
@@ -36,7 +36,15 @@ Se identificó el repositorio que realmente contiene la V1: enriquevillap/enriqu
 
 Se incorporó un filtro de archivos para evitar ejecutar Chromium ante cambios exclusivamente documentales, y concurrencia con cancelación de ejecuciones anteriores de la misma rama. Esta modificación del pipeline aún debe comprobarse en el siguiente flujo.
 
-## Pendientes por prioridad
+## Hito de publicación completado
+
+- PR #1 fusionado en master mediante commit `57091628ce7c665e8651ee7d045e89341588ef8d`.
+- GitHub Pages completó compilación y despliegue: ejecución 44453927145.
+- Verificación HTTP pública aprobada: ejecución 44453927957.
+- Pruebas finales del motor y navegador, incluida la PWA y la escena 3D, aprobadas: ejecución 44453685877.
+- La escena tridimensional procedural fue incorporada **después del motor y las demás funciones**. No se reivindica hiperrealismo fotorrealista validado.
+
+## Pendientes de evolución fuera de la publicación
 1. Revisar visualmente la captura automática y ejecutar un ensayo manual de los controles en navegador local o Codespaces.
 2. Validar manualmente en navegador y móvil, usabilidad, persistencia y accesibilidad.
 3. Ampliar parámetros configurables y reportes temporales a partir de pruebas verificadas.
@@ -46,4 +54,4 @@ Se incorporó un filtro de archivos para evitar ejecutar Chromium ante cambios e
 7. ÚLTIMA ETAPA: experiencia 3D hiperrealista, únicamente cuando el núcleo funcional y la evidencia estén estabilizados.
 
 ## Restricciones
-No fusionar ni cambiar master ni modificar la aplicación original. No publicar como V2 final hasta evaluación integral. No llamar potable al permeado virtual y no declarar operación en campo.
+La aplicación V2 ya está publicada en su ruta independiente. La V1 académica original permanece inalterada. No llamar potable al permeado virtual y no declarar operación en campo.
