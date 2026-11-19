@@ -89,7 +89,8 @@ function render(){
  "\nPotencia útil: "+fmt(r.usefulPower)+" kW"+
  "\nPotencia nominal requerida: "+fmt(r.nominalRequired)+" kW"+
  "\nPotencia efectivamente consumida (modelo): "+fmt(r.requiredPower)+" kW"+
- "\nQp: "+fmt(r.permeate,3)+" m³/h · Qb: "+fmt(r.brine,3)+" m³/h"+
+ "\nQp membrana: "+fmt(r.permeate,3)+" m³/h · Qb: "+fmt(r.brine,3)+" m³/h"+
+ "\nPermeado aceptado en tanque: "+fmt(r.productAccepted,3)+" m³/h · desviado: "+fmt(r.divertedPermeate,3)+" m³/h"+
  "\nRecuperación efectiva: "+fmt(r.effectiveRecovery,1)+" %"+
  "\nNivel final tanque: "+fmt(r.tankLevelNext,1)+" %"+
  "\nAlertas: "+r.alarms.length+
@@ -99,7 +100,7 @@ function render(){
  $("alarmBody").innerHTML=state.alarmHistory.length?state.alarmHistory.slice(0,200).map((a,i)=>
  '<tr><td>'+escape(new Date(a.date).toLocaleString("es-CO"))+'<br><small>'+escape(a.runId)+'</small></td><td>'+escape(a.code)+'<br><small>'+escape(a.message)+'</small></td><td class="alarm-'+escape(a.severity)+'">'+escape(a.severity)+'</td><td>'+escape(a.status)+'</td><td>'+(a.status==="Pendiente"?'<button data-ack="'+escape(a.id)+'">Reconocer</button>':"—")+'</td></tr>').join(""):'<tr><td colspan="5">Sin alarmas registradas.</td></tr>';
  $("histCount").textContent=state.history.length;
- $("histVolume").textContent=fmt(state.history.reduce((s,x)=>s+(x.result?.permeate||0)*(x.result?.duration||0),0),2)+" m³";
+ $("histVolume").textContent=fmt(state.history.reduce((s,x)=>s+(x.result?.productAccepted||0)*(x.result?.duration||0),0),2)+" m³";
  $("histEnergy").textContent=fmt(state.history.reduce((s,x)=>s+(x.result?.usableEnergy||0),0),2)+" kWh";
  $("historyBody").innerHTML=state.history.length?state.history.slice(-200).reverse().map(x=>'<tr><td>'+escape(x.id)+'</td><td>'+escape(new Date(x.date).toLocaleString("es-CO"))+'</td><td>'+escape(x.scenario)+'</td><td>'+escape(x.result.state)+'</td><td>'+fmt(x.result.permeate,3)+'</td><td>'+fmt(x.result.usefulPower)+'</td><td>'+fmt(x.result.nominalRequired)+'</td><td>'+fmt(x.result.tankLevelNext,1)+'</td></tr>').join(""):'<tr><td colspan="8">Aún no hay ejecuciones.</td></tr>';
  $("queueStatus").textContent="Cola local: "+state.queue.filter(x=>x.status!=="Sincronizado virtualmente").length+" pendientes de sincronización simulada · "+state.queue.length+" registros totales. NO se transmiten datos a servidores.";
@@ -129,7 +130,7 @@ function csvRows(rows){
 function flattenHistory(){return state.history.map(x=>({id:x.id,fecha:x.date,escenario:x.scenario,version:x.modelVersion,
   estado:x.result.state,accion:x.result.action,irradiancia_Wm2:x.result.irradiance,
   caudal_alimentacion_m3h:x.result.feedEffective,caudal_permeado_m3h:x.result.permeate,
-  caudal_rechazo_m3h:x.result.brine,potencia_util_kW:x.result.usefulPower,
+  caudal_rechazo_m3h:x.result.brine,permeado_aceptado_m3h:x.result.productAccepted,permeado_desviado_m3h:x.result.divertedPermeate,potencia_util_kW:x.result.usefulPower,
   potencia_diseno_kW:x.result.nominalRequired,potencia_consumida_kW:x.result.requiredPower,
   salinidad_permeado_gL:x.result.permeateSalinity,nivel_tanque_pct:x.result.tankLevelNext,
   alarmas:x.result.alarms.map(a=>a.code).join("|")}));
