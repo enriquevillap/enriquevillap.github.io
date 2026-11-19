@@ -31,3 +31,10 @@ jobs:
       - name: Probar interfaz, escenarios y descarga CSV
         run: node ui-tests.mjs
         working-directory: desalinizacion-zni/v2
+      - name: Adjuntar captura de la interfaz
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zni-v2-captura
+          path: desalinizacion-zni/v2/v2-preview.png
+          if-no-files-found: ignore
