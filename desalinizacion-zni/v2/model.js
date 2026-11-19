@@ -1,5 +1,5 @@
 // Modelo académico: todos los resultados son virtuales. Sin sensores ni potabilidad certificada.
-export const MODEL_VERSION = "2.0.0-dev.1";
+export const MODEL_VERSION = "2.0.0-dev.2";
 export const DEFAULTS = Object.freeze({
   irradiance:800, feed:1.2, recovery:0.35, feedSalinity:35, rejection:0.99,
   temperature:25, tmp:55, sec:3.5, latency:1000, completeness:99.5,
@@ -10,6 +10,21 @@ export const THRESHOLDS = Object.freeze({
   cpMax:0.50, feedSalinityMax:40, latencyMax:5000, completenessMin:98,
   tankMin:20, tankMax:95, tmpMax:70, filterDpMax:1.0
 });
+const THRESHOLD_LIMITS=Object.freeze({
+ cpMax:[0.01,10],feedSalinityMax:[0.1,100],latencyMax:[1,120000],
+ completenessMin:[0,100],tankMin:[0,99],tankMax:[1,100],tmpMax:[1,100],filterDpMax:[0.01,10]
+});
+export function validateThresholds(raw={}){
+ if(raw===null||typeof raw!=="object"||Array.isArray(raw))throw new TypeError("Umbrales inválidos");
+ const result={};
+ for(const [key,[min,max]] of Object.entries(THRESHOLD_LIMITS)){
+  const value=raw[key]===undefined?THRESHOLDS[key]:Number(raw[key]);
+  if(!Number.isFinite(value)||value<min||value>max)throw Error("Umbral inválido: "+key+" ["+min+", "+max+"]");
+  result[key]=value;
+ }
+ if(result.tankMin>=result.tankMax)throw Error("El nivel mínimo del tanque debe ser menor que el máximo");
+ return Object.freeze(result);
+}
 export const SENSOR_DEFINITIONS = Object.freeze([
   ["SOL-01","Irradiancia FV","irradiance","W/m²"],
   ["POT-01","Potencia utilizable","usefulPower","kW"],
@@ -55,20 +70,21 @@ export function normalizeInputs(raw={}){
   return cleaned;
 }
 const round=(v,n=5)=>Number(v.toFixed(n));
-export function simulate(raw={},previousTankLevel=null){
+export function simulate(raw={},previousTankLevel=null,customThresholds={}){
   const a=normalizeInputs(raw);
+  const thresholds=validateThresholds(customThresholds);
   const tankInitial=previousTankLevel===null?a.tankLevel:Math.max(0,Math.min(100,finite(previousTankLevel,"previousTankLevel")));
   const area=10, etaPV=0.20, etaConv=0.90;
   const pvPower=a.irradiance*area*etaPV/1000, usefulPower=pvPower*etaConv;
   const designPermeate=a.feed*a.recovery, nominalRequired=a.sec*designPermeate;
   const nominalCp=a.feedSalinity*(1-a.rejection);
-  const commBad=!a.communication||a.latency>THRESHOLDS.latencyMax||a.completeness<THRESHOLDS.completenessMin;
-  const salinityBad=nominalCp>THRESHOLDS.cpMax||a.feedSalinity>THRESHOLDS.feedSalinityMax;
+  const commBad=!a.communication||a.latency>thresholds.latencyMax||a.completeness<thresholds.completenessMin;
+  const salinityBad=nominalCp>thresholds.cpMax||a.feedSalinity>thresholds.feedSalinityMax;
   const energyBad=usefulPower+1e-9<nominalRequired;
   const pumpBad=!a.pump&&!a.reservePump;
-  const tankLow=tankInitial<THRESHOLDS.tankMin;
-  const tmpHigh=a.tmp>THRESHOLDS.tmpMax;
-  const filterBad=a.filterPressureDrop>THRESHOLDS.filterDpMax;
+  const tankLow=tankInitial<thresholds.tankMin;
+  const tmpHigh=a.tmp>thresholds.tmpMax;
+  const filterBad=a.filterPressureDrop>thresholds.filterDpMax;
   let state="NORMAL",action="MAINTAIN",load=1;
   const alarms=[];
   if(pumpBad){state="PUMP_FAILURE";action="STOP_PROCESS";load=0;}
@@ -95,7 +111,7 @@ export function simulate(raw={},previousTankLevel=null){
   const brineSalinity=brine>0?(feedEffective*a.feedSalinity-permeate*permeateSalinity)/brine:0;
   const recovered=feedEffective>0?permeate/feedEffective:0;
   // Caudal fuera de especificación: desviar del tanque sin alterar el balance de membrana.
-  const divertedPermeate=permeateSalinity>THRESHOLDS.cpMax+1e-9?permeate:0;
+  const divertedPermeate=permeateSalinity>thresholds.cpMax+1e-9?permeate:0;
   const productAccepted=permeate-divertedPermeate;
   const requiredPower=a.sec*permeate;
   // Equivalencia de volumen: m³/h * h; nivel de tanque m³ / capacidad m³.
@@ -108,7 +124,7 @@ export function simulate(raw={},previousTankLevel=null){
   const usableEnergy=requiredPower*a.duration;
   const renewableCoverage=requiredPower>0?Math.min(100,usefulPower/requiredPower*100):100;
   return {
-    ...a,modelVersion:MODEL_VERSION,state,action,loadFactor:round(load),
+    ...a,modelVersion:MODEL_VERSION,thresholds,state,action,loadFactor:round(load),
     pvPower:round(pvPower),usefulPower:round(usefulPower),nominalRequired:round(nominalRequired),
     requiredPower:round(requiredPower),feedEffective:round(feedEffective),
     designPermeate:round(designPermeate),permeate:round(permeate),brine:round(brine),
@@ -144,5 +160,8 @@ export function runRegressionTests(){
   test("Prioridad comunicación > salinidad",()=>simulate({communication:false,feedSalinity:70}).state==="COMMUNICATION_LOSS");
   test("Permeado fuera de criterio no entra al tanque",()=>simulate({feedSalinity:70,irradiance:1100}).productAccepted===0);
   test("Permeado aceptado conserva caudal nominal",()=>Math.abs(simulate({irradiance:1200}).productAccepted-0.42)<1e-8);
+  test("Umbral de calidad configurable despliega desvío",()=>simulate({irradiance:1200},null,{cpMax:0.25}).productAccepted===0);
+  test("Umbral de comunicación configurable opera",()=>simulate({latency:2000,irradiance:1200},null,{latencyMax:1000}).action==="SAFE_MODE");
+  test("Umbrales inconsistentes rechazados",()=>{try{validateThresholds({tankMin:90,tankMax:80});return false;}catch{return true;}});
   return {passed:checks.filter(x=>x.pass).length,total:checks.length,checks};
 }
