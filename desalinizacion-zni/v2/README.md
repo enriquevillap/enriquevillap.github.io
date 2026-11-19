@@ -1,6 +1,6 @@
 # Prototipo digital interactivo ZNI — V2 (rama de desarrollo)
 
-**Estado:** versión experimental de software. **No desplegada como versión oficial**. La V1 académica permanece en /desalinizacion-zni/index.html de la rama master y en https://enriquevillap.github.io/desalinizacion-zni/.
+**Estado:** versión experimental de software, motor `2.0.0-dev.2`. **No desplegada como versión oficial**. La V1 académica permanece en /desalinizacion-zni/index.html de la rama master y en https://enriquevillap.github.io/desalinizacion-zni/.
 
 **Ubicación en rama**: \`feature/desalinizacion-zni-v2-modelo-iot\` → \`desalinizacion-zni/v2/\`.
 
@@ -20,6 +20,8 @@ Modelo conceptual exclusivamente simulado de una planta de ósmosis inversa con 
 8. Cola local de eventos durante comunicación degradada y **sincronización virtual**, sin transmisión de datos.
 9. Cabina y esquema 2D accesible, dashboard de energía, documentación IoT, advertencias de no potabilidad y pruebas de regresión.
 10. Pruebas automáticas del motor invocables por \`node tests.mjs\` y workflow de GitHub Actions.
+11. Configuración local validada de salinidad, comunicación, niveles, presión y filtros. Cada simulación guarda una copia de los umbrales realmente utilizados.
+12. Reportes de escenarios simulados por fecha de ejecución (24 horas, 7 días, 30 días y total) con CSV y JSON, separando permeado aceptado, desviado, energía, eventos y estados. El módulo `reports.js` no inventa producción histórica.
 
 ## Verificación local
 
@@ -38,6 +40,10 @@ Con Node.js 22: \`cd desalinizacion-zni/v2 && npm test\`.
 - El control de recuperación de sales, la hidrodinámica y el consumo específico son simplificaciones y no sustituyen datos experimentales.
 
 **Advertencia:** La reducción por salinidad del 50 % es una regla sintética. El caudal que exceda el criterio de salinidad del permeado no se contabiliza como alimentación al tanque. El estado de recuperación solar nominal a 800 W/m² **es ENERGY_LIMIT** con Qf=1,20 m³/h, R=35 %, SEC=3,5 kWh/m³, porque Putil=1,44 kW y Preq de diseño=1,47 kW.
+
+## Límites de las nuevas funcionalidades
+
+Los umbrales son supuestos didácticos, no consignas de proceso industrial. Los reportes agrupan **fechas de ejecución de escenarios**; sumar sus resultados no equivale a medir producción continua real. La vista tridimensional hiperrealista está deliberadamente excluida de esta iteración.
 
 ## Plan de implementación restante, en orden estricto
 
