@@ -39,4 +39,30 @@ assert.ok(reportCsv(reportAll).includes("permeado_aceptado"));
 assert.throws(()=>validateThresholds({tankMin:80,tankMax:70}));
 assert.equal(simulate({...DEFAULTS,irradiance:1200},null,{cpMax:0.25}).productAccepted,0);
 console.log("REPORTES: 2 históricos, 1 ventana 24h, balances confirmados");
+
+ // Exploración determinista de condiciones límite. No reemplaza validación experimental.
+ let seed=20261118;
+ const rand=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+ let scanned=0;
+ for(let i=0;i<240;i++){
+  const p={
+   irradiance:1400*rand(),feed:3*rand(),recovery:.9*rand(),
+   feedSalinity:100*rand(),rejection:.9+.1*rand(),sec:.1+29.9*rand(),
+   latency:120000*rand(),completeness:100*rand(),tankLevel:100*rand(),
+   tankCapacity:.1+100*rand(),demand:5*rand(),duration:24*rand(),
+   tmp:100*rand(),filterPressureDrop:10*rand(),
+   communication:i%5!==0,pump:i%7!==0,reservePump:i%11!==0
+  };
+  const v=simulate(p);
+  assert.equal(v.balanced,true,"Masa de agua "+i);
+  assert.equal(v.saltBalanced,true,"Balance salino "+i);
+  assert.ok(v.requiredPower<=v.usefulPower+0.00002,"Energía disponible "+i);
+  assert.ok(v.permeate>=0&&v.brine>=0&&v.productAccepted>=0,"Flujos no negativos "+i);
+  assert.ok(v.productAccepted<=v.permeate+0.00002,"Producto aceptado "+i);
+  assert.ok(v.tankLevelNext>=0&&v.tankLevelNext<=100,"Límites de tanque "+i);
+  assert.ok(Number.isFinite(v.brineSalinity)&&Number.isFinite(v.renewableCoverage),"Resultados finitos "+i);
+  scanned++;
+ }
+ console.log("PROPERTY SCAN: "+scanned+" condiciones sintéticas deterministas, invariantes satisfactorias");
+
 console.log("VERSION:",MODEL_VERSION,"SCENARIOS:",Object.keys(SCENARIOS).length,"REGRESSION:",result.passed+"/"+result.total);
