@@ -1,6 +1,6 @@
 # Prototipo digital interactivo ZNI — V2 (rama de desarrollo)
 
-**Estado:** versión experimental de software, motor `2.0.0-dev.2`. **No desplegada como versión oficial**. La V1 académica permanece en /desalinizacion-zni/index.html de la rama master y en https://enriquevillap.github.io/desalinizacion-zni/.
+**Estado:** versión experimental de software, motor `2.0.0-dev.3`. **No desplegada como versión oficial**. La V1 académica permanece en /desalinizacion-zni/index.html de la rama master y en https://enriquevillap.github.io/desalinizacion-zni/.
 
 **Ubicación en rama**: \`feature/desalinizacion-zni-v2-modelo-iot\` → \`desalinizacion-zni/v2/\`.
 
@@ -40,6 +40,14 @@ Con Node.js 22: \`cd desalinizacion-zni/v2 && npm test\`.
 - El control de recuperación de sales, la hidrodinámica y el consumo específico son simplificaciones y no sustituyen datos experimentales.
 
 **Advertencia:** La reducción por salinidad del 50 % es una regla sintética. El caudal que exceda el criterio de salinidad del permeado no se contabiliza como alimentación al tanque. El estado de recuperación solar nominal a 800 W/m² **es ENERGY_LIMIT** con Qf=1,20 m³/h, R=35 %, SEC=3,5 kWh/m³, porque Putil=1,44 kW y Preq de diseño=1,47 kW.
+
+## Tercera iteración: comparabilidad metodológica y calidad
+
+- Se distingue el modo **INDEPENDIENTE** del **SECUENCIAL**. El primero reinicia el tanque con el nivel solicitado; el segundo hereda el nivel final anterior, y registra el modo empleado en el historial y CSV.
+- Las secuencias demostrativas comienzan sin heredar escenarios anteriores; después sí encadenan los pasos.
+- El modelo rechaza SEC igual a cero para impedir una operación con demanda energética nula incompatible con el supuesto operativo.
+- Se amplió la suite a 24 controles y se agregaron **240 casos sintéticos deterministas** para verificar balances de agua y sal, límites energéticos, niveles y finitud de resultados.
+- Se añadieron salto al contenido, foco visible, controles de teclado y pruebas de navegador móvil emulado. Estas mejoras no constituyen auditoría de accesibilidad completa.
 
 ## Límites de las nuevas funcionalidades
 
