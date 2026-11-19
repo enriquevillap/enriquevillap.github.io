@@ -4,9 +4,15 @@ on:
     branches:
       - feature/desalinizacion-zni-v2-modelo-iot
     paths:
-      - 'desalinizacion-zni/v2/**'
+      - 'desalinizacion-zni/v2/*.js'
+      - 'desalinizacion-zni/v2/*.html'
+      - 'desalinizacion-zni/v2/*.css'
+      - 'desalinizacion-zni/v2/package.json'
       - '.github/workflows/zni-v2-checks.yml'
   workflow_dispatch:
+concurrency:
+  group: zni-v2-validation-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   test-simulation:
     runs-on: ubuntu-24.04
