@@ -22,6 +22,11 @@ Ruta: desalinizacion-zni/v2/
 | C-14 | Prueba en otro dispositivo físico | NO VERIFICABLE | No se aportó evidencia | Ejecutar y documentar |
 | C-15 | Calidad real, validación experimental y TRL4 | NO APLICA A ESTA VERSIÓN | Alcance del README y guías | Diseñar protocolo posterior |
 | C-16 | Vista 3D hiperrealista | PENDIENTE POR DISEÑO | Hoja de ruta y README | SOLO DESPUÉS de los demás controles |
+| C-20 | Modo independiente vs. secuencial documentado | CUMPLE | GitHub Actions 44451394759, prueba navegador de tanque | Comprobar UX por usuarios |
+| C-21 | Exploración de 240 condiciones de proceso | CUMPLE | GitHub Actions 44451394759, tests.mjs | No constituye validación experimental |
+| C-22 | SEC no nulo como entrada | CUMPLE | GitHub Actions 44451394759, model.js | Verificar pertinencia con diseño físico posterior |
+| C-23 | Pantalla móvil emulada de 390 px | CUMPLE | GitHub Actions 44451394759 | Teléfono físico pendiente |
+| C-24 | Navegación por teclado y enlace de salto | IMPLEMENTADO / CI PENDIENTE | index.html, style.css, ui-tests.mjs | Confirmar corrida 44451496925 |
 | C-17 | Umbrales configurables con validación y persistencia local | IMPLEMENTADO / CI PENDIENTE | model.js, app.js, prueba Chromium | Verificar último commit |
 | C-18 | Reportes 24 h, 7 d, 30 d y total | IMPLEMENTADO / CI PENDIENTE | reports.js, app.js, tests.mjs | Verificar último commit |
 | C-19 | Evento de tanque sobre límite configurable | IMPLEMENTADO / CI PENDIENTE | model.js, suite de regresión | Verificar último commit |
