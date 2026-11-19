@@ -235,4 +235,16 @@ function renderTests(){
  $("testResults").innerHTML="<p><strong>"+result.passed+" / "+result.total+" comprobaciones satisfactorias</strong></p>"+result.checks.map(t=>
  '<div class="'+(t.pass?"pass":"fail")+'">'+(t.pass?"✓":"✕")+" "+escape(t.name)+(t.error?" · "+escape(t.error):"")+"</div>").join("");
 }
-renderInputs();drawThresholdForm();wire();render();
+function browserConnectivity(){
+ const el=$("browserNetwork");
+ if(!el)return;
+ const online=navigator.onLine;
+ el.textContent=online?"Navegador en línea · simulación local":"Navegador sin internet · datos y modelos locales";
+ el.classList.toggle("is-offline",!online);
+}
+window.addEventListener("online",browserConnectivity);
+window.addEventListener("offline",browserConnectivity);
+if("serviceWorker" in navigator){
+ window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(error=>console.warn("PWA sin registrar:",error)));
+}
+renderInputs();drawThresholdForm();wire();render();browserConnectivity();
