@@ -33,7 +33,7 @@ export function mountPlant3D(canvas,status,getResult=()=>null){
  const ctx=canvas.getContext("2d",{alpha:false});
  if(!ctx)throw Error("Representación 3D no disponible en este navegador");
  let yaw=-.62,pitch=.44,zoom=33,target=V(0,1,0),width=900,height=570,dpr=1;
- let dragging=false,pointerX=0,pointerY=0,auto=false,raf=0,lastFrame=0,selected="Ósmosis inversa",alive=true;
+ let dragging=false,pointerX=0,pointerY=0,startX=0,startY=0,auto=false,raf=0,lastFrame=0,selected="Ósmosis inversa",alive=true;
  const root=canvas.closest(".scene-wrap")||canvas.parentElement;
  canvas.style.touchAction="none";
  const write=(message)=>{if(status)status.textContent=message;};
@@ -200,6 +200,27 @@ export function mountPlant3D(canvas,status,getResult=()=>null){
    ctx.fillStyle=active?"#fff0b5":"#e6f5fa";ctx.fillText(item.name,bx+8,by+14);
    ctx.beginPath();ctx.arc(pt.x,pt.y,3,0,2*Math.PI);ctx.fillStyle=item.color;ctx.fill();
   }
+  // Indicadores derivados del motor real de la aplicación, siempre sintéticos.
+  const run=getResult();
+  if(run){
+   const level=clamp(Number(run.tankLevelNext)||0,0,100);
+   const bottom=project(V(10.25,.38,.25),cam),top=project(V(10.25,5.26,.25),cam);
+   if(bottom&&top){
+    const barX=clamp(bottom.x+28,16,width-23),yTop=Math.min(bottom.y,top.y),barH=Math.abs(bottom.y-top.y);
+    if(barH>25&&barH<height*.75){
+     ctx.fillStyle="rgba(5,29,46,.80)";ctx.fillRect(barX,yTop,8,barH);
+     ctx.fillStyle=level>95?"#f1c66b":"#49d4c9";
+     ctx.fillRect(barX,yTop+barH*(1-level/100),8,barH*level/100);
+     ctx.strokeStyle="#b5dbe0";ctx.strokeRect(barX,yTop,8,barH);
+    }
+   }
+   const message="ESTADO "+String(run.state||"N/D")+"  ·  Qp "+Number(run.permeate||0).toFixed(3)+" m³/h  ·  TANQUE "+level.toFixed(1)+" %";
+   ctx.font="600 "+(mobile?10:12)+"px system-ui";
+   const mw=Math.min(width-24,ctx.measureText(message).width+24);
+   ctx.fillStyle="rgba(5,23,40,.87)";ctx.fillRect(12,48,mw,29);
+   ctx.fillStyle=run.state==="NORMAL"?"#6af0c3":"#ffdc97";
+   ctx.fillText(message,21,67,Math.max(1,mw-16));
+  }
   ctx.fillStyle="rgba(5,17,29,.82)";ctx.fillRect(12,height-40,Math.min(width-24,423),26);
   ctx.font="600 11px system-ui";ctx.fillStyle="#d9e8f1";
   ctx.fillText("ESCENA 3D CONCEPTUAL · geometría procedural · no ingeniería de detalle",20,height-22);
@@ -219,10 +240,10 @@ export function mountPlant3D(canvas,status,getResult=()=>null){
      r&&selected==="Fotovoltaica"?" P útil = "+r.usefulPower+" kW.":"";
   write(selected+": "+nodeInfo[selected]+indicators);
  }
- function down(e){dragging=true;pointerX=e.clientX;pointerY=e.clientY;canvas.setPointerCapture(e.pointerId);}
+ function down(e){dragging=true;pointerX=startX=e.clientX;pointerY=startY=e.clientY;canvas.setPointerCapture(e.pointerId);}
  function move(e){if(!dragging)return;const dx=e.clientX-pointerX,dy=e.clientY-pointerY;pointerX=e.clientX;pointerY=e.clientY;
   yaw-=dx*.007;pitch=clamp(pitch+dy*.006,.13,1.23);}
- function up(e){if(!dragging)return;dragging=false;if(Math.abs(e.clientX-pointerX)<5&&Math.abs(e.clientY-pointerY)<5){const r=canvas.getBoundingClientRect();choose(e.clientX-r.left,e.clientY-r.top);}}
+ function up(e){if(!dragging)return;dragging=false;if(Math.abs(e.clientX-startX)<6&&Math.abs(e.clientY-startY)<6){const r=canvas.getBoundingClientRect();choose(e.clientX-r.left,e.clientY-r.top);}}
  function wheel(e){e.preventDefault();zoom=clamp(zoom+Math.sign(e.deltaY)*2,19,65);}
  canvas.addEventListener("pointerdown",down);canvas.addEventListener("pointermove",move);
  canvas.addEventListener("pointerup",up);canvas.addEventListener("pointercancel",()=>{dragging=false;});
