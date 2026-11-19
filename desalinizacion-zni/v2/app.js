@@ -1,9 +1,11 @@
-import {MODEL_VERSION,DEFAULTS,THRESHOLDS,SCENARIOS,SENSOR_DEFINITIONS,simulate,runRegressionTests} from "./model.js";
+import {MODEL_VERSION,DEFAULTS,THRESHOLDS,SCENARIOS,SENSOR_DEFINITIONS,simulate,runRegressionTests,validateThresholds} from "./model.js";
+import {aggregateHistory,REPORT_PERIODS,reportCsv} from "./reports.js";
 const $=(id)=>document.getElementById(id);
-const KEY="zni_v2_history_1", ALARM_KEY="zni_v2_alarms_1", QUEUE_KEY="zni_v2_queue_1";
+const KEY="zni_v2_history_1", ALARM_KEY="zni_v2_alarms_1", QUEUE_KEY="zni_v2_queue_1", SETTINGS_KEY="zni_v2_thresholds_1";
 const read=(key)=>{try{const v=JSON.parse(localStorage.getItem(key)||"[]");return Array.isArray(v)?v:[]}catch{return []}};
+const loadThresholds=()=>{try{return validateThresholds(JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}"));}catch{return validateThresholds();}};
 const restoredHistory=read(KEY);
-const state={history:restoredHistory,alarmHistory:read(ALARM_KEY),queue:read(QUEUE_KEY),current:restoredHistory.at(-1)?.result||null,node:null,seq:restoredHistory.length};
+const state={history:restoredHistory,alarmHistory:read(ALARM_KEY),queue:read(QUEUE_KEY),current:restoredHistory.at(-1)?.result||null,node:null,seq:restoredHistory.length,thresholds:loadThresholds()};
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state.history));localStorage.setItem(ALARM_KEY,JSON.stringify(state.alarmHistory));localStorage.setItem(QUEUE_KEY,JSON.stringify(state.queue));}catch(err){console.warn("Almacenamiento local no disponible",err);}};
 const fmt=(v,d=2)=>Number(v).toLocaleString("es-CO",{minimumFractionDigits:d,maximumFractionDigits:d});
 const escape=(s)=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -44,7 +46,7 @@ function execute(code=null,keepTank=true){
  try{
   const raw=getForm();
   const prev=keepTank&&state.current?state.current.tankLevelNext:null;
-  const result=simulate(raw,prev);
+  const result=simulate(raw,prev,state.thresholds);
   state.current=result;
   const id="SIM-"+new Date().toISOString().replace(/[^\d]/g,"").slice(0,14)+"-"+(++state.seq);
   const entry={id,date:new Date().toISOString(),scenario:code||$("scenario").value,modelVersion:MODEL_VERSION,
@@ -55,7 +57,7 @@ function execute(code=null,keepTank=true){
    state.alarmHistory.unshift({id:id+"-"+alarm.code,runId:id,date:entry.date,code:alarm.code,
      message:alarm.message,severity:alarm.severity,status:"Pendiente"});
   }
-  if(!result.communication||result.latency>THRESHOLDS.latencyMax||result.completeness<THRESHOLDS.completenessMin){
+  if(!result.communication||result.latency>state.thresholds.latencyMax||result.completeness<state.thresholds.completenessMin){
     state.queue.push({id,created:entry.date,simulation:entry,status:"Pendiente de sincronización simulada"});
   }
   if(state.alarmHistory.length>3000)state.alarmHistory.length=3000;
@@ -78,7 +80,7 @@ function render(){
  const nodeDesc={
   "Captación":"Entrada virtual de agua de mar; caudal efectivo: "+fmt(r.feedEffective,3)+" m³/h.",
   "Bombeo":"Estado lógico: "+r.pumpMode+". Orden: "+r.action+". Sin actuadores físicos.",
-  "Filtros":"Caída de presión supuesta: "+fmt(r.filterPressureDrop,2)+" bar. Límite: "+THRESHOLDS.filterDpMax+" bar.",
+  "Filtros":"Caída de presión supuesta: "+fmt(r.filterPressureDrop,2)+" bar. Límite: "+r.thresholds.filterDpMax+" bar.",
   "Ósmosis inversa":"Permeado: "+fmt(r.permeate,3)+" m³/h; rechazo: "+fmt(r.brine,3)+" m³/h.",
   "Tanque":"Nivel después del escenario: "+fmt(r.tankLevelNext,1)+" %. Demanda: "+fmt(r.demand,2)+" m³/h.",
   "Fotovoltaica":"Irradiancia "+fmt(r.irradiance,0)+" W/m² → potencia útil "+fmt(r.usefulPower)+" kW.",
@@ -105,6 +107,7 @@ function render(){
  $("histEnergy").textContent=fmt(state.history.reduce((s,x)=>s+(x.result?.usableEnergy||0),0),2)+" kWh";
  $("historyBody").innerHTML=state.history.length?state.history.slice(-200).reverse().map(x=>'<tr><td>'+escape(x.id)+'</td><td>'+escape(new Date(x.date).toLocaleString("es-CO"))+'</td><td>'+escape(x.scenario)+'</td><td>'+escape(x.result.state)+'</td><td>'+fmt(x.result.permeate,3)+'</td><td>'+fmt(x.result.usefulPower)+'</td><td>'+fmt(x.result.nominalRequired)+'</td><td>'+fmt(x.result.tankLevelNext,1)+'</td></tr>').join(""):'<tr><td colspan="8">Aún no hay ejecuciones.</td></tr>';
  $("queueStatus").textContent="Cola local: "+state.queue.filter(x=>x.status!=="Sincronizado virtualmente").length+" pendientes de sincronización simulada · "+state.queue.length+" registros totales. NO se transmiten datos a servidores.";
+ renderReport();
  drawChart();
 }
 function drawChart(){
@@ -136,6 +139,32 @@ function flattenHistory(){return state.history.map(x=>({id:x.id,fecha:x.date,esc
   salinidad_permeado_gL:x.result.permeateSalinity,nivel_tanque_pct:x.result.tankLevelNext,
   alarmas:x.result.alarms.map(a=>a.code).join("|")}));
 }
+const thresholdFields=[
+ ["cpMax","Salinidad máxima del permeado","g/L",.01,10,.01],
+ ["feedSalinityMax","Salinidad máxima de alimentación","g/L",.1,100,.1],
+ ["latencyMax","Latencia máxima virtual","ms",1,120000,1],
+ ["completenessMin","Completitud mínima","%",0,100,.1],
+ ["tankMin","Nivel mínimo de tanque","%",0,99,1],
+ ["tankMax","Nivel máximo de tanque","%",1,100,1],
+ ["tmpMax","Presión TMP máxima","bar",1,100,.5],
+ ["filterDpMax","ΔP máximo filtros","bar",.01,10,.01]
+];
+function drawThresholdForm(){
+ $("thresholdForm").innerHTML=thresholdFields.map(([id,label,unit,min,max,step])=>
+ '<div class="field"><label for="threshold-'+id+'">'+escape(label)+' ('+escape(unit)+')</label><input id="threshold-'+id+'" type="number" min="'+min+'" max="'+max+'" step="'+step+'" value="'+state.thresholds[id]+'"></div>').join("");
+}
+function renderReport(){
+ const period=$("reportPeriod").value;
+ const report=aggregateHistory(state.history,period);
+ $("reportSummary").textContent=report.totals.runs+" ejecuciones · "+fmt(report.totals.acceptedVolumeM3,3)+
+ " m³ de permeado aceptado virtual · "+fmt(report.totals.divertedVolumeM3,3)+
+ " m³ desviados virtuales · "+fmt(report.totals.energyKWh,3)+
+ " kWh de consumo virtual · "+report.totals.alarmCount+" eventos.";
+ $("reportBody").innerHTML=report.series.length?report.series.map(day=>
+ '<tr><td>'+escape(day.date)+'</td><td>'+day.runs+'</td><td>'+fmt(day.acceptedM3,3)+
+ '</td><td>'+fmt(day.energyKWh,3)+'</td><td>'+day.alarms+'</td></tr>').join(""):
+ '<tr><td colspan="5">No hay simulaciones con fecha válida para el período.</td></tr>';
+}
 function wire(){
  document.querySelectorAll(".nav").forEach(n=>n.addEventListener("click",()=>changeView(n.dataset.view)));
  $("jumpSim").onclick=()=>changeView("simulate");$("jumpIot").onclick=()=>changeView("iot");
@@ -160,6 +189,29 @@ function wire(){
   }
   changeView("history");
  };
+ $("saveThresholds").onclick=()=>{
+  try{
+   const values={};
+   for(const [id] of thresholdFields){if(!$("threshold-"+id).value.trim())throw Error("Falta el umbral "+id);values[id]=Number($("threshold-"+id).value);}
+   const validated=validateThresholds(values);
+   localStorage.setItem(SETTINGS_KEY,JSON.stringify(validated));
+   state.thresholds=validated;
+   $("thresholdMsg").textContent="Umbrales guardados en este navegador. Se aplicarán solo a las próximas ejecuciones.";
+  }catch(err){$("thresholdMsg").textContent="No guardado: "+err.message;}
+ };
+ $("restoreThresholds").onclick=()=>{
+  try{localStorage.removeItem(SETTINGS_KEY);state.thresholds=validateThresholds();drawThresholdForm();$("thresholdMsg").textContent="Umbrales académicos restaurados.";}
+  catch(err){$("thresholdMsg").textContent="No restaurados: "+err.message;}
+ };
+ $("reportPeriod").onchange=()=>renderReport();
+ $("exportReportCsv").onclick=()=>{
+  const report=aggregateHistory(state.history,$("reportPeriod").value);
+  download("zni-v2-reporte-"+report.period+".csv","\ufeff"+reportCsv(report),"text/csv;charset=utf-8");
+ };
+ $("exportReportJson").onclick=()=>{
+  const report=aggregateHistory(state.history,$("reportPeriod").value);
+  download("zni-v2-reporte-"+report.period+".json",JSON.stringify(report,null,2),"application/json");
+ };
  $("runTests").onclick=()=>renderTests();$("testRun").onclick=()=>{changeView("tests");renderTests();};
  $("exportCsv").onclick=()=>download("zni-v2-registros.csv","\ufeff"+csvRows(flattenHistory()),"text/csv;charset=utf-8");
  $("exportJson").onclick=()=>download("zni-v2-registros.json",JSON.stringify({modelVersion:MODEL_VERSION,exportedAt:new Date().toISOString(),history:state.history},null,2),"application/json");
@@ -176,4 +228,4 @@ function renderTests(){
  $("testResults").innerHTML="<p><strong>"+result.passed+" / "+result.total+" comprobaciones satisfactorias</strong></p>"+result.checks.map(t=>
  '<div class="'+(t.pass?"pass":"fail")+'">'+(t.pass?"✓":"✕")+" "+escape(t.name)+(t.error?" · "+escape(t.error):"")+"</div>").join("");
 }
-renderInputs();wire();render();
+renderInputs();drawThresholdForm();wire();render();
