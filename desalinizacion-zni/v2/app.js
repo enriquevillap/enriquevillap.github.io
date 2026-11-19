@@ -2,7 +2,8 @@ import {MODEL_VERSION,DEFAULTS,THRESHOLDS,SCENARIOS,SENSOR_DEFINITIONS,simulate,
 const $=(id)=>document.getElementById(id);
 const KEY="zni_v2_history_1", ALARM_KEY="zni_v2_alarms_1", QUEUE_KEY="zni_v2_queue_1";
 const read=(key)=>{try{const v=JSON.parse(localStorage.getItem(key)||"[]");return Array.isArray(v)?v:[]}catch{return []}};
-const state={history:read(KEY),alarmHistory:read(ALARM_KEY),queue:read(QUEUE_KEY),current:null,node:null,seq:0};
+const restoredHistory=read(KEY);
+const state={history:restoredHistory,alarmHistory:read(ALARM_KEY),queue:read(QUEUE_KEY),current:restoredHistory.at(-1)?.result||null,node:null,seq:restoredHistory.length};
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state.history));localStorage.setItem(ALARM_KEY,JSON.stringify(state.alarmHistory));localStorage.setItem(QUEUE_KEY,JSON.stringify(state.queue));}catch(err){console.warn("Almacenamiento local no disponible",err);}};
 const fmt=(v,d=2)=>Number(v).toLocaleString("es-CO",{minimumFractionDigits:d,maximumFractionDigits:d});
 const escape=(s)=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -144,6 +145,12 @@ function wire(){
  $("reset").onclick=()=>{setForm(DEFAULTS);$("scenario").value="V01";};
  $("demo").onclick=()=>{
   for(const key of ["V01","V02","V04","V06","V09","V10"]){activateScenario(key);execute(key,true);}
+  changeView("history");
+ };
+ $("solarProfile").onclick=()=>{
+  for(const irradiance of [800,750,600,400,300,400,600,750,800]){
+    setForm({...DEFAULTS,irradiance});execute("V07",true);
+  }
   changeView("history");
  };
  $("runTests").onclick=()=>renderTests();$("testRun").onclick=()=>{changeView("tests");renderTests();};
