@@ -1,0 +1,19 @@
+{
+  "name": "Digital Twin ZNI · Simulador académico v2",
+  "short_name": "ZNI Simulador",
+  "description": "Simulador hídrico-energético académico sin sensores físicos ni certificación de potabilidad.",
+  "lang": "es-CO",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#081321",
+  "theme_color": "#081321",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

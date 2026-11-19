@@ -1,0 +1,51 @@
+name: Desalinizacion ZNI v2 - validacion del motor
+on:
+  push:
+    branches:
+      - feature/desalinizacion-zni-v2-modelo-iot
+    paths:
+      - 'desalinizacion-zni/v2/*.js'
+      - 'desalinizacion-zni/v2/*.mjs'
+      - 'desalinizacion-zni/v2/*.webmanifest'
+      - 'desalinizacion-zni/v2/*.svg'
+      - 'desalinizacion-zni/v2/*.html'
+      - 'desalinizacion-zni/v2/*.css'
+      - 'desalinizacion-zni/v2/package.json'
+      - '.github/workflows/zni-v2-checks.yml'
+  workflow_dispatch:
+concurrency:
+  group: zni-v2-validation-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test-simulation:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Probar motor matematico y casos V01 a V10
+        run: |
+          node --check model.js
+          node --check app.js
+          npm test
+        working-directory: desalinizacion-zni/v2
+      - name: Instalar navegador de prueba
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+        working-directory: desalinizacion-zni/v2
+      - name: Probar interfaz, escenarios y descarga CSV
+        run: node ui-tests.mjs
+        working-directory: desalinizacion-zni/v2
+      - name: Adjuntar captura de la interfaz
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zni-v2-captura
+          path: |
+            desalinizacion-zni/v2/v2-preview.png
+            desalinizacion-zni/v2/v2-mobile-preview.png
+          if-no-files-found: ignore
