@@ -29,8 +29,12 @@ Se identificó el repositorio que realmente contiene la V1: enriquevillap/enriqu
 - Se añadió distinción del modo de simulación a las exportaciones y a los contadores del informe.
 - El motor exige un consumo energético específico positivo. Su versión actual es `2.0.0-dev.3`.
 - Los controles automáticos completaron **24/24**, y 240 casos de propiedades reproducibles superaron balances, límites y finitud, según GitHub Actions 44451394759.
-- La emulación móvil de 390 px pasó en ese mismo run; la verificación con teclado se agregó posteriormente y su último pipeline está pendiente.
+- La emulación móvil de 390 px pasó en ese mismo run; la verificación del enlace de salto y la selección del esquema con teclado ya obtuvo un flujo completo satisfactorio en GitHub Actions 44451496925.
 - La experiencia 3D hiperrealista continúa expresamente **pospuesta hasta el final**.
+
+## Optimización CI
+
+Se incorporó un filtro de archivos para evitar ejecutar Chromium ante cambios exclusivamente documentales, y concurrencia con cancelación de ejecuciones anteriores de la misma rama. Esta modificación del pipeline aún debe comprobarse en el siguiente flujo.
 
 ## Pendientes por prioridad
 1. Revisar visualmente la captura automática y ejecutar un ensayo manual de los controles en navegador local o Codespaces.
