@@ -1,0 +1,22 @@
+name: Desalinizacion ZNI v2 - validacion del motor
+on:
+  push:
+    branches:
+      - feature/desalinizacion-zni-v2-modelo-iot
+    paths:
+      - 'desalinizacion-zni/v2/**'
+      - '.github/workflows/zni-v2-checks.yml'
+  workflow_dispatch:
+jobs:
+  test-simulation:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Probar motor matematico y casos V01 a V10
+        run: npm test
+        working-directory: desalinizacion-zni/v2
