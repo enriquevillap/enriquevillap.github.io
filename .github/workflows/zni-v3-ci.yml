@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - feature/desalinizacion-zni-v3-caribe-premium
+      - feature/aquaseven-v3-experiencia-educativa-iot-mapas
     paths:
       - 'desalinizacion-zni/v3/**'
       - '.github/workflows/zni-v3-ci.yml'
@@ -27,6 +28,7 @@ jobs:
           node --check model.js
           node --check components.js
           node --check plant3d.js
+          node --check experience.js
           node --check reports.js
           npm test
       - name: Instalar motor de navegador
