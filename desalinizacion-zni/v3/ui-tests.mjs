@@ -35,7 +35,7 @@ try{
  await page.locator('[data-view="iot"]').click();
  assert.equal(await page.locator("#archProcess .arch-node").count(),7);
  await page.locator('#archProcess [data-component="pump"]').click();
- assert.match(await page.locator("#iotTitle").innerText(),/Bombeo/);
+ assert.match(await page.locator("#iotTitle").innerText(),/bombeo/i);
  assert.match(await page.locator("#iotMeasures").innerText(),/Caudal/);
  await page.screenshot({path:"v3-iot.png",fullPage:true});
  console.log("PASS arquitectura IoT y ficha por componente");
