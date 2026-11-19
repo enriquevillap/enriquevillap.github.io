@@ -16,6 +16,13 @@ Se identificó el repositorio que realmente contiene la V1: enriquevillap/enriqu
 ## Resultado de control disponible
 18/18 comprobaciones básicas pasaron en GitHub Actions. El flujo Chromium, la prueba de persistencia y la captura automática finalizaron con éxito en el run 44448345825 para el commit 3017af338dafcc330294633822e5d264bc22a65e. Ese flujo incluye las últimas modificaciones funcionales.
 
+## Segunda iteración (2026-11-18, hora Colombia)
+- Módulo separado `reports.js` con agregados de consumo y volumen de escenarios sintéticos, serie por fecha de ejecución y exportación.
+- Panel de umbrales configurables con validación, almacenamiento local e incorporación al resultado de cada ejecución.
+- Umbral alto de tanque y evento `HIGH_TANK` simulados.
+- Pruebas ampliadas para reportes, umbrales, persistencia y CSV.
+- Se debe comprobar el pipeline del commit más reciente antes de aceptar estos cambios como validados.
+
 ## Pendientes por prioridad
 1. Revisar visualmente la captura automática y ejecutar un ensayo manual de los controles en navegador local o Codespaces.
 2. Validar manualmente en navegador y móvil, usabilidad, persistencia y accesibilidad.
