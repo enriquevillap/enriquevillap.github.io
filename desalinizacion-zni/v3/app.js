@@ -99,6 +99,15 @@ $("queueStatus").textContent=state.queue.filter(q=>q.status!=="Sincronizado virt
 renderChart("controlChart",["permeate","feedEffective"],"#6ce6c7");renderChart("energyChart",["usefulPower","nominalRequired","requiredPower"],"#25b2bd");
 report();selectComponent(state.component);selectSensor(state.sensor);state.scene?.update?.(r);
 }
+function selectPlantVisual(photo){
+ $("photoReference").hidden=!photo;
+ $("plant3dMount").style.visibility=photo?"hidden":"visible";
+ document.querySelector(".plant-scene").classList.toggle("photo-active",photo);
+ $("modePhoto").classList.toggle("active",photo);
+ $("mode3d").classList.toggle("active",!photo);
+ $("modePhoto").setAttribute("aria-pressed",String(photo));
+ $("mode3d").setAttribute("aria-pressed",String(!photo));
+}
 function wire(){
 document.addEventListener("click",event=>{
  const nav=event.target.closest("[data-view]");if(nav)setView(nav.dataset.view);
@@ -109,6 +118,8 @@ document.addEventListener("click",event=>{
  const ack=event.target.closest("[data-ack]");if(ack){const item=state.alarms.find(a=>a.id===ack.dataset.ack);if(item){item.status="Reconocida";save();render();}}
 });
 $("mobileMenu").onclick=()=>document.querySelector(".sidebar").classList.toggle("open");
+$("modePhoto").onclick=()=>selectPlantVisual(true);
+$("mode3d").onclick=()=>selectPlantVisual(false);
 $("scenario").onchange=()=>applyScenario($("scenario").value);
 $("run").onclick=()=>simulateNow(null,$("chainScenarios").checked);
 $("reset").onclick=()=>{applyScenario("V01");$("chainScenarios").checked=false};
