@@ -79,6 +79,28 @@ try{
  await page.locator('[data-view="settings"]').click();
  await page.locator("#restoreThresholds").click();
  console.log("PASS configuración de umbrales persistente y control del modelo");
+
+ // Pruebas de independencia temporal: solo el modo encadenado hereda el tanque.
+ await page.locator('[data-view="simulate"]').click();
+ await page.selectOption("#scenario","V01");
+ await page.fill("#irradiance","1200");
+ await page.fill("#demand","0");
+ await page.fill("#tankLevel","50");
+ await page.locator("#chainScenarios").uncheck();
+ await page.locator("#run").click();
+ const independentLevel=await page.evaluate(()=>JSON.parse(localStorage.getItem("zni_v2_history_1")).at(-1).result.tankLevelNext);
+ await page.locator("#chainScenarios").check();
+ await page.locator("#run").click();
+ const sequential=await page.evaluate(()=>JSON.parse(localStorage.getItem("zni_v2_history_1")).at(-1));
+ assert.equal(sequential.mode,"SECUENCIAL");
+ assert.ok(sequential.result.tankLevelNext>independentLevel,"Tanque secuencial acumula volumen");
+ await page.locator("#chainScenarios").uncheck();
+ await page.locator("#run").click();
+ const isolated=await page.evaluate(()=>JSON.parse(localStorage.getItem("zni_v2_history_1")).at(-1));
+ assert.equal(isolated.mode,"INDEPENDIENTE");
+ assert.equal(isolated.result.tankLevelNext,independentLevel,"Tanque no hereda estado anterior");
+ console.log("PASS escenarios independientes versus secuenciales");
+
  await page.locator('[data-view="tests"]').click();
  await page.locator("#runTests").click();
  assert.match(await page.locator("#testResults").innerText(),/comprobaciones satisfactorias/);
