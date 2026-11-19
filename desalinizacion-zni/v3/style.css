@@ -7,3 +7,15 @@
 .hero-water .island,.hero-water .beach{opacity:.16}
 .hero-water .wave{opacity:.18}
 .hero-water .sun{opacity:.45}
+
+
+[hidden]{display:none!important}
+.scene-mode{position:absolute;top:90px;left:18px;z-index:9;display:flex;gap:4px;background:rgba(248,255,253,.87);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.7);padding:5px;border-radius:12px;box-shadow:0 8px 24px rgba(8,56,77,.12)}
+.mode-option{border:0;background:transparent;color:#4f889b;font-size:11px;font-weight:800;padding:10px 13px;border-radius:8px}
+.mode-option.active{background:#189db5;color:#fff}
+.photo-reference{position:absolute;inset:0;z-index:2;background:#c3e4e5}
+.photo-reference img{width:100%;height:100%;object-fit:cover;object-position:50% 44%;filter:contrast(1.04) saturate(1.05)}
+.photo-credit{position:absolute;left:18px;right:18px;bottom:18px;background:rgba(5,39,57,.83);color:#e2fcfa;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:13px 16px}
+.photo-credit strong,.photo-credit span{display:block}.photo-credit strong{font-size:11px;letter-spacing:1px;margin-bottom:5px}.photo-credit span{font-size:11px;color:#c5e1e5}
+.photo-active .scene-toolbar{display:none}
+@media(max-width:700px){.scene-mode{top:90px;left:10px;right:10px}.mode-option{flex:1;font-size:10px;padding:9px}.photo-credit{left:10px;right:10px;bottom:10px}}
