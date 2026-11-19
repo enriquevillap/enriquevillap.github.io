@@ -80,7 +80,12 @@ try{
  await page.locator("#sceneZoomIn").click();
  await page.locator("#sceneRotate").click();
  assert.equal(await page.locator("#sceneRotate").getAttribute("aria-pressed"),"true");
- console.log("PASS WebGL PBR, tanque, zoom y rotación");
+ await page.locator("#modePhoto").click();
+ assert.equal(await page.locator("#photoReference").isVisible(),true);
+ assert.equal(await page.locator("#modePhoto").getAttribute("aria-pressed"),"true");
+ await page.locator("#mode3d").click();
+ assert.equal(await page.locator("#plant3dMount canvas").isVisible(),true);
+ console.log("PASS WebGL PBR, tanque, zoom, rotación y referencia fotográfica");
  await page.setViewportSize({width:390,height:844});
  await page.locator('[data-view="home"]').click();
  const mobile=await page.evaluate(()=>({width:document.documentElement.scrollWidth,viewport:innerWidth}));
