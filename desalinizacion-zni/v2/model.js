@@ -94,10 +94,13 @@ export function simulate(raw={},previousTankLevel=null){
   const permeateSalinity=permeate>0?nominalCp:0;
   const brineSalinity=brine>0?(feedEffective*a.feedSalinity-permeate*permeateSalinity)/brine:0;
   const recovered=feedEffective>0?permeate/feedEffective:0;
+  // Caudal fuera de especificación: desviar del tanque sin alterar el balance de membrana.
+  const divertedPermeate=permeateSalinity>THRESHOLDS.cpMax+1e-9?permeate:0;
+  const productAccepted=permeate-divertedPermeate;
   const requiredPower=a.sec*permeate;
   // Equivalencia de volumen: m³/h * h; nivel de tanque m³ / capacidad m³.
   const tankVolume=tankInitial/100*a.tankCapacity;
-  const netVolume=(permeate-a.demand)*a.duration;
+  const netVolume=(productAccepted-a.demand)*a.duration;
   const tankVolumeNext=Math.max(0,Math.min(a.tankCapacity,tankVolume+netVolume));
   const tankLevelNext=tankVolumeNext/a.tankCapacity*100;
   const excessSpill=Math.max(0,tankVolume+netVolume-a.tankCapacity);
@@ -109,6 +112,7 @@ export function simulate(raw={},previousTankLevel=null){
     pvPower:round(pvPower),usefulPower:round(usefulPower),nominalRequired:round(nominalRequired),
     requiredPower:round(requiredPower),feedEffective:round(feedEffective),
     designPermeate:round(designPermeate),permeate:round(permeate),brine:round(brine),
+    productAccepted:round(productAccepted),divertedPermeate:round(divertedPermeate),
     permeateSalinity:round(permeateSalinity),brineSalinity:round(brineSalinity),
     effectiveRecovery:round(recovered*100),tankLevelStart:round(tankInitial),
     tankLevelNext:round(tankLevelNext),tankVolumeNext:round(tankVolumeNext),
@@ -138,5 +142,7 @@ export function runRegressionTests(){
   test("Entrada inválida rechazada",()=>{try{simulate({feed:-2});return false;}catch{return true;}});
   test("Prioridad bomba > comunicación",()=>simulate({pump:false,reservePump:false,communication:false}).state==="PUMP_FAILURE");
   test("Prioridad comunicación > salinidad",()=>simulate({communication:false,feedSalinity:70}).state==="COMMUNICATION_LOSS");
+  test("Permeado fuera de criterio no entra al tanque",()=>simulate({feedSalinity:70,irradiance:1100}).productAccepted===0);
+  test("Permeado aceptado conserva caudal nominal",()=>Math.abs(simulate({irradiance:1200}).productAccepted-0.42)<1e-8);
   return {passed:checks.filter(x=>x.pass).length,total:checks.length,checks};
 }
