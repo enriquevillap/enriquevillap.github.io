@@ -22,6 +22,7 @@ try{
  await page.goto("http://127.0.0.1:"+port,{waitUntil:"networkidle"});
  assert.match(await page.locator("h1").innerText(),/DESALINIZACIÓN ZNI/);
  assert.equal(await page.locator("#kState").innerText(),"ENERGY_LIMIT");
+ await page.screenshot({path:"v2-preview.png",fullPage:true});
  console.log("PASS landing + nominal state ENERGY_LIMIT");
  await page.locator('[data-view="sensors"]').click();
  assert.equal(await page.locator("#sensorBody tr").count(),12);
@@ -45,7 +46,12 @@ try{
  assert.ok(await page.locator("#alarmBody tr").count()>0);
  console.log("PASS registro de alarmas");
  await page.locator('[data-view="history"]').click();
- assert.ok(Number(await page.locator("#histCount").innerText())>=2);
+ const countBefore=Number(await page.locator("#histCount").innerText());
+ assert.ok(countBefore>=2);
+ await page.reload({waitUntil:"networkidle"});
+ await page.locator('[data-view="history"]').click();
+ assert.equal(Number(await page.locator("#histCount").innerText()),countBefore,"persistencia local entre recargas");
+ console.log("PASS persistencia local entre recargas");
  const pending=page.waitForEvent("download");
  await page.locator("#exportCsv").click();
  const artifact=await pending;
