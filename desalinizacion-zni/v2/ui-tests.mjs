@@ -134,6 +134,20 @@ try{
  assert.equal(errors.length,0,"Errores JS: "+errors.join(" | "));
  console.log("PASS suites y sin errores JS");
  await page.reload({waitUntil:"networkidle"});
+ const swDebug=await page.evaluate(async()=>{
+  const out={supported:"serviceWorker" in navigator};
+  try{
+   const registration=await navigator.serviceWorker.register("./sw.js",{scope:"./"});
+   await navigator.serviceWorker.ready;
+   out.state=registration.active?.state||"sin active";
+   out.controller=Boolean(navigator.serviceWorker.controller);
+   out.scope=registration.scope;
+  }catch(e){out.error=e.message;}
+  return out;
+ });
+ console.log("SERVICE WORKER:",JSON.stringify(swDebug));
+ if(swDebug.error)throw Error("Registro PWA: "+swDebug.error);
+ if(!swDebug.controller)await page.reload({waitUntil:"networkidle"});
  await page.waitForFunction(()=>Boolean(navigator.serviceWorker.controller),null,{timeout:15000});
  await page.context().setOffline(true);
  await page.reload({waitUntil:"domcontentloaded"});
