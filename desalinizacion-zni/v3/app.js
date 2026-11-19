@@ -1,6 +1,7 @@
 import {MODEL_VERSION,DEFAULTS,THRESHOLDS,SCENARIOS,SENSOR_DEFINITIONS,simulate,runRegressionTests,validateThresholds} from "./model.js";
 import {aggregateHistory,reportCsv} from "./reports.js";
 import {COMPONENTS,SENSOR_INFO} from "./components.js";
+import {installExperience} from "./experience.js";
 const $=id=>document.getElementById(id);
 const qa=s=>Array.from(document.querySelectorAll(s));
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -10,6 +11,7 @@ const KEYS={history:"aquaseven-v3-history",alarms:"aquaseven-v3-alarms",queue:"a
 const read=k=>{try{const v=JSON.parse(localStorage.getItem(k)||"[]");return Array.isArray(v)?v:[]}catch{return []}};
 const loadThresholds=()=>{try{return validateThresholds(JSON.parse(localStorage.getItem(KEYS.thresholds)||"{}"))}catch{return validateThresholds()}};
 const previous=read(KEYS.history);
+let experience=null;
 const state={history:previous,alarms:read(KEYS.alarms),queue:read(KEYS.queue),current:previous.at(-1)?.result||simulate(),thresholds:loadThresholds(),view:"home",component:"ro",sensor:"SOL-01",scene:null,seq:previous.length};
 const save=()=>{try{localStorage.setItem(KEYS.history,JSON.stringify(state.history));localStorage.setItem(KEYS.alarms,JSON.stringify(state.alarms));localStorage.setItem(KEYS.queue,JSON.stringify(state.queue))}catch(e){console.warn("Almacenamiento local no disponible",e)}};
 const fields=[
@@ -44,7 +46,7 @@ setForm(DEFAULTS);for(const [id] of thresholdFields)$("th-"+id).value=state.thre
 function setForm(data){for(const [id] of fields)$(id).value=data[id]??DEFAULTS[id];for(const id of ["pump","reservePump","communication"])$(id).checked=data[id]??DEFAULTS[id];$("formError").hidden=true;}
 function getForm(){const data={};for(const [id] of fields){const val=$(id).value.trim();if(!val)throw Error("Complete "+id);data[id]=Number(val)}for(const id of ["pump","reservePump","communication"])data[id]=$(id).checked;return data}
 function applyScenario(key){const s=SCENARIOS[key];if(!s)return;setForm({...DEFAULTS,...s.values});$("scenario").value=key}
-function setView(view){if(!$("view-"+view))return;state.view=view;qa(".view").forEach(el=>el.classList.toggle("active",el.id==="view-"+view));qa(".nav").forEach(el=>el.classList.toggle("active",el.dataset.view===view));$("breadcrumb").textContent=qa(".nav").find(x=>x.dataset.view===view)?.textContent.trim()||view;document.querySelector(".sidebar").classList.remove("open");if(view==="plant")init3D();if(view==="iot")selectComponent(state.component);if(view==="sensors")selectSensor(state.sensor);window.scrollTo({top:0,behavior:"instant"})}
+function setView(view){if(!$("view-"+view))return;const previousView=state.view;state.view=view;qa(".view").forEach(el=>el.classList.toggle("active",el.id==="view-"+view));qa(".nav").forEach(el=>el.classList.toggle("active",el.dataset.view===view));$("breadcrumb").textContent=qa(".nav").find(x=>x.dataset.view===view)?.textContent.trim()||view;document.querySelector(".sidebar").classList.remove("open");if(view==="plant")init3D();if(view==="iot")selectComponent(state.component);if(view==="sensors")selectSensor(state.sensor);experience?.onView(view,previousView);window.scrollTo({top:0,behavior:"instant"})}
 function simulateNow(key=null,chained=false){
 try{
 const inputs=getForm(),seq=Boolean(chained&&state.history.length),previousTank=seq?state.current.tankLevelNext:null;
@@ -76,7 +78,7 @@ function selectSensor(id){const def=SENSOR_DEFINITIONS.find(x=>x[0]===id)||SENSO
 $("sensorTitle").textContent=def[1];$("sensorMeta").innerHTML='<span class="subtle-tag">'+esc(def[0])+'</span><p>'+esc(SENSOR_INFO[def[0]])+'</p>';
 $("sensorGauge").innerHTML='<div class="gauge-ring" style="--value:'+clamp(amount(def[2])/(measuresMax[def[2]]||100)*100,0,100)+'"><strong>'+fmt(amount(def[2]),2)+'</strong></div><small>'+esc(def[3])+'</small>';spark("sensorSpark",def[2]);}
 let scenePromise=null;
-async function init3D(){if(scenePromise)return scenePromise;scenePromise=import("./plant3d.js").then(async mod=>{state.scene=await mod.mountPlant3D($("plant3dMount"),id=>selectComponent(id));state.scene.update?.(state.current);return state.scene}).catch(error=>{console.warn("Planta 3D",error);$("plant3dMount").innerHTML='<div class="scene-placeholder"><strong>La vista 3D requiere un navegador compatible y acceso inicial a su biblioteca gráfica.</strong><small>'+esc(error.message)+'</small></div>';scenePromise=null;return null});return scenePromise}
+async function init3D(){if(scenePromise)return scenePromise;scenePromise=import("./plant3d.js").then(async mod=>{state.scene=await mod.mountPlant3D($("plant3dMount"),id=>{selectComponent(id);experience?.inspectComponent(id)});state.scene.update?.(state.current);return state.scene}).catch(error=>{console.warn("Planta 3D",error);$("plant3dMount").innerHTML='<div class="scene-placeholder"><strong>La vista 3D requiere un navegador compatible y acceso inicial a su biblioteca gráfica.</strong><small>'+esc(error.message)+'</small></div>';scenePromise=null;return null});return scenePromise}
 
 function report(){const data=aggregateHistory(state.history,$("reportPeriod").value);$("reportSummary").textContent=data.totals.runs+" ejecuciones · "+fmt(data.totals.acceptedVolumeM3,3)+" m³ virtuales aceptados · "+fmt(data.totals.divertedVolumeM3,3)+" m³ desviados · "+fmt(data.totals.energyKWh,3)+" kWh calculados · "+data.totals.alarmCount+" alertas";return data}
 function render(){const r=state.current;
@@ -149,3 +151,12 @@ function connectivity(){$("networkStatus").textContent=navigator.onLine?"Navegad
 window.addEventListener("online",connectivity);window.addEventListener("offline",connectivity);
 if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(e=>console.warn("PWA",e)));
 renderForms();wire();render();connectivity();
+experience=installExperience({
+ readComponent(id){const c=COMPONENTS[id];return c?c.measures.map(([label,key,unit,,precision])=>label+": "+display(key,unit,precision)).join(" · "):""},
+ readSensor(id){const d=SENSOR_DEFINITIONS.find(x=>x[0]===id);return d?d[1]+": "+display(d[2],d[3],2):""},
+ readTopic(id){const map={state:["state",""],power:["usefulPower","kW"],permeate:["permeate","m³/h"],tank:["tankLevelNext","%"]};const pair=map[id];return pair?display(...pair,2):"Cambia los parámetros y ejecuta un escenario para estudiar el resultado."},
+ isConnected(){return state.current.communication},
+ delay(){return state.current.latency},
+ completeness(){return state.current.completeness},
+ labels:Object.fromEntries(Object.entries(COMPONENTS).map(([k,v])=>[k,v.name]))
+});
