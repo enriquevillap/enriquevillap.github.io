@@ -1,0 +1,19 @@
+{
+  "name": "AquaSeven · Simulador de desalinización",
+  "short_name": "AquaSeven",
+  "description": "Gemelo digital conceptual de una planta de desalinización con sensores IoT virtuales y entorno Caribe.",
+  "lang": "es-CO",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "theme_color": "#e7f8f9",
+  "background_color": "#f2fbfc",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
