@@ -32,7 +32,7 @@ try{
  const imgResponse=await page.request.get(new URL("/assets/planta-general.webp",page.url()).href);
  assert.equal(imgResponse.status(),200);
  assert.match(imgResponse.headers()["content-type"],/image\/webp/);
- await page.locator('[data-explain="power"]').click();
+ await page.locator('.learn-trigger[data-explain="power"]').click();
  assert.match(await page.locator("#eduTitle").innerText(),/Energía solar útil/);
  assert.match(await page.locator("#eduWhy").innerText(),/insuficiente/);
  await page.locator("#eduClose").click();
