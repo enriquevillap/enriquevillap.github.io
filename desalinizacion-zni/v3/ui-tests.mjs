@@ -59,7 +59,7 @@ try{
  assert.equal(await page.locator("#iotVisual").isVisible(),true);
  assert.match(await page.locator("#iotVisual").evaluate(el=>el.style.backgroundImage),/iot-mapa/);
  await page.locator("#iotPhotoHotspots [data-component='solar']").click();
- assert.match(await page.locator("#eduTitle").innerText(),/fotovoltaico/i);
+ assert.match(await page.locator("#eduTitle").innerText(),/paneles solares/i);
  await page.locator("#eduClose").click();
  await page.locator('[data-iot-mode="three"]').click();
  assert.equal(await page.locator("#iotNetworkRoot .network-node").count(),12);
