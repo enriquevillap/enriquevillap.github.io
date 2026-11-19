@@ -8,7 +8,7 @@ const base=dirname(fileURLToPath(import.meta.url));
 const types={".html":"text/html; charset=utf-8",".css":"text/css; charset=utf-8",".js":"text/javascript; charset=utf-8",".svg":"image/svg+xml",".webmanifest":"application/manifest+json"};
 const server=http.createServer(async (req,res)=>{
   const route=(req.url||"/").split("?")[0];const name=route==="/"?"/index.html":route;
-  if(!/^\/(?:index\.html|style\.css|app\.js|model\.js|reports\.js|sw\.js|manifest\.webmanifest|icon\.svg)$/.test(name)){res.writeHead(404);res.end("Not found");return;}
+  if(!/^\/(?:index\.html|style\.css|app\.js|model\.js|reports\.js|plant3d\.js|sw\.js|manifest\.webmanifest|icon\.svg)$/.test(name)){res.writeHead(404);res.end("Not found");return;}
   try{let content=await readFile(resolve(base,"."+name));res.writeHead(200,{"Content-Type":types[extname(name)]});res.end(content);}
   catch(e){res.writeHead(500);res.end(String(e));}
 });
@@ -112,6 +112,18 @@ try{
  await page.locator('[data-view="tests"]').click();
  await page.locator("#runTests").click();
  assert.match(await page.locator("#testResults").innerText(),/comprobaciones satisfactorias/);
+ await page.locator('[data-view="plant3d"]').click();
+ await page.waitForFunction(()=>document.querySelector("#sceneDescription")?.textContent?.includes("Ósmosis inversa"),null,{timeout:12000});
+ await page.waitForFunction(()=>document.querySelector("#plant3dCanvas").width>500,null,{timeout:12000});
+ const colorData=await page.locator("#plant3dCanvas").evaluate(c=>Array.from(c.getContext("2d").getImageData(Math.floor(c.width/2),Math.floor(c.height/2),1,1).data));
+ assert.equal(colorData[3],255,"Canvas tiene contenido opaco");
+ await page.selectOption("#sceneFocus","Tanque");
+ assert.match(await page.locator("#sceneDescription").innerText(),/Tanque/i);
+ await page.locator("#sceneZoomIn").click();
+ await page.locator("#sceneRotate").click();
+ assert.equal(await page.locator("#sceneRotate").getAttribute("aria-pressed"),"true");
+ await page.locator("#sceneRotate").click();
+ console.log("PASS representación 3D, foco por equipo y controles de cámara");
  await page.setViewportSize({width:390,height:844});
  await page.locator('[data-view="overview"]').click();
  assert.equal(await page.locator("#kState").isVisible(),true);
@@ -129,6 +141,9 @@ try{
  await page.locator('[data-view="simulate"]').click();
  assert.equal(await page.locator("#scenario option").count(),12);
  assert.match(await page.locator("#browserNetwork").innerText(),/sin internet/i);
+ await page.locator('[data-view="plant3d"]').click();
+ await page.waitForFunction(()=>document.querySelector("#sceneDescription")?.textContent?.includes("Ósmosis inversa"),null,{timeout:15000});
+ console.log("PASS vista tridimensional disponible sin conexión tras instalación PWA");
  await page.context().setOffline(false);
  console.log("PASS funcionamiento offline del shell PWA con controles locales");
 
