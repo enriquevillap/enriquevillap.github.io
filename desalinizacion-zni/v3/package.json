@@ -1,0 +1,10 @@
+{
+  "name": "aquaseven-desalinizacion-v3",
+  "version": "3.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tests.mjs",
+    "test:ui": "node ui-tests.mjs"
+  }
+}

@@ -1,0 +1,47 @@
+name: AquaSeven V3 - validacion integral
+on:
+  push:
+    branches:
+      - feature/desalinizacion-zni-v3-caribe-premium
+    paths:
+      - 'desalinizacion-zni/v3/**'
+      - '.github/workflows/zni-v3-ci.yml'
+  workflow_dispatch:
+concurrency:
+  group: aquaseven-v3-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Sintaxis y motor de simulacion
+        working-directory: desalinizacion-zni/v3
+        run: |
+          node --check app.js
+          node --check model.js
+          node --check components.js
+          node --check plant3d.js
+          node --check reports.js
+          npm test
+      - name: Instalar motor de navegador
+        working-directory: desalinizacion-zni/v3
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install chromium
+      - name: Validar interfaz y planta WebGL
+        working-directory: desalinizacion-zni/v3
+        run: node ui-tests.mjs
+      - name: Guardar capturas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aquaseven-v3-capturas
+          path: |
+            desalinizacion-zni/v3/v3-*.png
+          if-no-files-found: ignore
