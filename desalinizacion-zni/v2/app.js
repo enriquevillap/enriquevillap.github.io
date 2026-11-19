@@ -61,12 +61,14 @@ function execute(code=null,keepTank=true){
     state.queue.push({id,created:entry.date,simulation:entry,status:"Pendiente de sincronización simulada"});
   }
   if(state.alarmHistory.length>3000)state.alarmHistory.length=3000;
+  if(state.queue.length>1000)state.queue.splice(0,state.queue.length-1000);
   save(); render(); $("runTag").textContent=id; $("formError").hidden=true;
   return result;
  }catch(err){$("formError").textContent="No se pudo ejecutar: "+err.message;$("formError").hidden=false;return null;}
 }
 function render(){
- const r=state.current||simulate(DEFAULTS);
+ const r=state.current||simulate(DEFAULTS,null,state.thresholds);
+ $("runTag").textContent=state.history.at(-1)?.id||"Sin ejecuciones";
  const k=(id,text)=>$(id).textContent=text;
  k("kState",r.state);k("kAction",r.action);k("kPower",fmt(r.usefulPower));
  k("kRequired",fmt(r.nominalRequired));k("kPermeate",fmt(r.permeate,3));
