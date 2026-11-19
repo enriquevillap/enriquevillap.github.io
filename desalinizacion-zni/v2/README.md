@@ -13,7 +13,7 @@ Modelo conceptual exclusivamente simulado de una planta de ósmosis inversa con 
 1. Motor \`model.js\` con entradas validadas, balances de agua y sal, potencia FV y demanda calculada (SEC × permeado), estados deterministas y prioridades de control.
 2. \`REDUCE_LOAD\` reduce el caudal virtual; \`STOP_PROCESS\` y \`SAFE_MODE\` eliminan la producción simulada. La bomba de respaldo se representa como estado lógico.
 3. 12 puntos de sensores sintéticos, incluidos caudales, salinidad, energía, presión, temperatura, tanque y latencia.
-4. Balance del tanque en m³ con demanda, límites, pérdidas por desborde y demanda no atendida; criterio de diseño simplificado.
+4. Balance del tanque en m³ con demanda, límites, pérdidas por desborde y demanda no atendida. El permeado virtual por encima del criterio de salinidad se desvía del tanque y se documenta aparte; esto no constituye control sanitario real.
 5. 10 escenarios de referencia (V01 a V10) más tanque bajo y filtro obstruido; demostración secuencial.
 6. Alarmas con severidad, código y reconocimiento local.
 7. Persistencia local con \`localStorage\`, exportación CSV/JSON e identificación temporal de ejecuciones y versión del modelo.
@@ -37,7 +37,7 @@ Con Node.js 22: \`cd desalinizacion-zni/v2 && npm test\`.
 - Restricciones simultáneas: la producción nunca requiere una potencia superior a la disponible por el modelo.
 - El control de recuperación de sales, la hidrodinámica y el consumo específico son simplificaciones y no sustituyen datos experimentales.
 
-**Advertencia:** La reducción por salinidad del 50 % es una regla sintética. El estado de recuperación solar nominal a 800 W/m² **es ENERGY_LIMIT** con Qf=1,20 m³/h, R=35 %, SEC=3,5 kWh/m³, porque Putil=1,44 kW y Preq de diseño=1,47 kW.
+**Advertencia:** La reducción por salinidad del 50 % es una regla sintética. El caudal que exceda el criterio de salinidad del permeado no se contabiliza como alimentación al tanque. El estado de recuperación solar nominal a 800 W/m² **es ENERGY_LIMIT** con Qf=1,20 m³/h, R=35 %, SEC=3,5 kWh/m³, porque Putil=1,44 kW y Preq de diseño=1,47 kW.
 
 ## Plan de implementación restante, en orden estricto
 
