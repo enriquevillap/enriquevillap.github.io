@@ -138,8 +138,8 @@ try{
   const out={supported:"serviceWorker" in navigator};
   try{
    const registration=await navigator.serviceWorker.register("./sw.js",{scope:"./"});
-   await navigator.serviceWorker.ready;
-   out.state=registration.active?.state||"sin active";
+   await new Promise(resolve=>setTimeout(resolve,1800));
+   out.state=registration.active?.state||registration.waiting?.state||registration.installing?.state||"sin active";
    out.controller=Boolean(navigator.serviceWorker.controller);
    out.scope=registration.scope;
   }catch(e){out.error=e.message;}
