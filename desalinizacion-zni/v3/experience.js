@@ -107,7 +107,7 @@ function mapHotspots(container,compact=false){
  for(const [id,name,x,y] of HOTSPOTS){
   const b=create("button","map-hotspot"+(compact?" tiny":""));
   b.style.left=x+"%";b.style.top=y+"%";
-  b.type="button";b.dataset.component=id;b.innerHTML='<span class="map-pin" aria-hidden="true">●</span><span class="map-title">'+name+'</span>';
+  b.type="button";b.dataset.component=id;b.dataset.packetNode=id;b.innerHTML='<span class="map-pin" aria-hidden="true">●</span><span class="map-title">'+name+'</span>';
   b.setAttribute("aria-label","Ver qué es "+name);
   container.append(b);
  }
@@ -147,9 +147,10 @@ function simulatePackets(){
  const lines=$("packetLog");
  lines.innerHTML=packetEvents.map(x=>'<div class="packet-event"><span class="'+(x.status==="RETENIDO"?"packet-drop":"packet-ok")+'">'+x.status+'</span> '+x.source.toUpperCase()+' → Gateway · #'+x.seq+'</div>').join("");
  $("packetCounter").textContent=packetNum+" paquetes virtuales";
- const origin=document.querySelector('[data-packet-node="'+source+'"]');
- const dest=document.querySelector('[data-packet-node="gateway"]');
- const layer=$("packetOverlay");
+ const layer=iotMode==="logic"?$("logicPacketOverlay"):$("packetOverlay");
+ const scope=iotMode==="logic"?document.querySelector(".architecture-main"):iotMode==="three"?$("iotNetworkRoot"):$("iotPhotoHotspots");
+ const origin=scope?.querySelector(iotMode==="logic"?'[data-component="'+source+'"]':'[data-packet-node="'+source+'"]');
+ const dest=scope?.querySelector(iotMode==="logic"?'[data-component="gateway"]':'[data-packet-node="gateway"]');
  if(origin&&dest&&layer){
   const base=layer.getBoundingClientRect(),a=origin.getBoundingClientRect(),b=dest.getBoundingClientRect();
   const ball=create("div","packet-ball"+(blocked?" blocked":""));
@@ -195,6 +196,7 @@ function mountIotViews(){
  section.before(visual);
  const net=createNetworkSVG();$("iotNetworkRoot").append(net);
  mapHotspots($("iotPhotoHotspots"),true);
+ const logicOverlay=create("div","logic-packet-overlay");logicOverlay.id="logicPacketOverlay";document.querySelector(".architecture-main").append(logicOverlay);
  const controls=divHTML('<section class="surface packet-console"><div class="packet-top"><div><strong>Simulador de paquetes</strong><p>Observa cómo viajan mensajes pequeños desde los sensores hacia la pasarela.</p></div><div class="packet-buttons"><button type="button" id="packetPause">Pausar</button><select id="packetSpeed" aria-label="Velocidad de paquetes"><option value="0.5">Lento</option><option value="1" selected>Normal</option><option value="2">Rápido</option></select></div></div><div class="packet-stats"><span id="packetCounter">0 paquetes virtuales</span><span>Camino: sensor → gateway → control</span></div><div id="packetLog" aria-live="polite" class="packet-log"></div></section>');
  visual.after(controls);
  const modes=chooser.querySelectorAll("[data-iot-mode]");
@@ -202,7 +204,7 @@ function mountIotViews(){
   iotMode=mode;section.hidden=mode!=="logic";visual.hidden=mode==="logic";
   modes.forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.iotMode===mode)));
   $("iotPhotoHotspots").hidden=mode==="three"||mode==="logic";
-  $("iotNetworkRoot").hidden=mode!=="three"&&mode!=="map";
+  $("iotNetworkRoot").hidden=mode!=="three";
   backgroundFor(mode);
  }
  for(const button of modes)button.addEventListener("click",()=>setMode(button.dataset.iotMode));
